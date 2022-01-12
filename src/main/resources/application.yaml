@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://127.0.0.1:3306/instagram-clone?createDatabaseIfNotExist=true
+    username: root
+    password: mariadb
+  jpa:
+    database-platform: org.hibernate.dialect.MariaDB103Dialect
+    generate-ddl: true
+    show-sql: true
+    database: mysql
+    hibernate:
+      ddl-auto: update
+
+
+logging:
+    level:
+        org:
+          hibernate: info
+
+
