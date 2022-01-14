@@ -1,10 +1,12 @@
 package com.zoooohs.instagramclone.configuration;
 
+import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -30,6 +32,7 @@ public class JwtTokenProvider {
     private long refreshTokenValidTime = 2*24*60*60*1000;
 
     private final UserDetailsService userDetailsService;
+    private final ModelMapper modelMapper;
 
     @PostConstruct
     protected void init() {
@@ -61,7 +64,7 @@ public class JwtTokenProvider {
 
     public Authentication getAuthentication(String token) {
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(this.getAccessTokenUserId(token));
-        return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
+        return new UsernamePasswordAuthenticationToken(this.modelMapper.map(userDetails, UserDto.class), "", userDetails.getAuthorities());
     }
 
     public String getAccessTokenUserId(String token) {
@@ -72,7 +75,7 @@ public class JwtTokenProvider {
     }
 
     public String resolveToken(HttpServletRequest request) {
-        return request.getHeader("X-AUTH-TOKEN");
+        return request.getHeader("Authorization").substring("Bearer ".length());
     }
 
     public boolean validAccessToken(String jwtToken) {

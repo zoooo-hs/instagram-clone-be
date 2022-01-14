@@ -2,7 +2,9 @@ package com.zoooohs.instagramclone.domain.user.entity;
 
 import com.zoooohs.instagramclone.domain.common.entity.BaseEntity;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -11,7 +13,9 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.Size;
 import java.util.Collection;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity(name = "user")
 public class UserEntity extends BaseEntity implements UserDetails {
 
