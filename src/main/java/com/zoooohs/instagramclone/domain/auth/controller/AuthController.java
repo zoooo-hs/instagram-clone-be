@@ -1,11 +1,10 @@
 package com.zoooohs.instagramclone.domain.auth.controller;
 
 import com.zoooohs.instagramclone.domain.auth.dto.AuthDto;
+import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
@@ -28,5 +27,15 @@ public class AuthController {
     @PostMapping("/auth/refresh")
     public AuthDto.Token refresh(@RequestBody @Valid AuthDto.Token token) {
         return this.authService.refresh(token);
+    }
+
+    @GetMapping("/auth/name")
+    public Boolean checkName(@ModelAttribute SearchModel searchModel) {
+        return this.authService.checkDuplicatedName(searchModel.getKeyword());
+    }
+
+    @GetMapping("/auth/email")
+    public Boolean checkEmail(@ModelAttribute SearchModel searchModel) {
+        return this.authService.checkDuplicatedEmail(searchModel.getKeyword());
     }
 }
