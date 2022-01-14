@@ -8,4 +8,8 @@ public interface AuthService {
     AuthDto.Token signIn(AuthDto.SignIn signIn);
 
     AuthDto.Token refresh(AuthDto.Token token);
+
+    boolean checkDuplicatedEmail(String email);
+
+    boolean checkDuplicatedName(String name);
 }

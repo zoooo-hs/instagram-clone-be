@@ -67,6 +67,20 @@ public class AuthServiceImpl implements AuthService {
         return generateNewToken(userName);
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public boolean checkDuplicatedEmail(String email) {
+        UserEntity user = this.userRepository.findByEmail(email).orElse(null);
+        return user != null;
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public boolean checkDuplicatedName(String name) {
+        UserEntity user = this.userRepository.findByName(name).orElse(null);
+        return user != null;
+    }
+
     @Transactional
     private AuthDto.Token generateNewToken(String userName) {
         AuthDto.Token token =  AuthDto.Token.builder()
