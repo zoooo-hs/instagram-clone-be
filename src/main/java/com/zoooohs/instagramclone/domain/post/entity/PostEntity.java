@@ -13,7 +13,8 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-@Entity(name = "post")
+@Entity
+@Table(name = "post")
 public class PostEntity extends BaseEntity {
     // TODO: hash tag 알 수 있는 방법 추가하기
     @Column(name = "description")
