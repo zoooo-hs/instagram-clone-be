@@ -15,6 +15,12 @@ import java.util.List;
 @NoArgsConstructor
 @Entity
 @Table(name = "post")
+@NamedEntityGraphs({
+        @NamedEntityGraph(name = "post-feed", attributeNodes = {
+                @NamedAttributeNode(value = "user"),
+                @NamedAttributeNode(value = "photos"),
+        }),
+})
 public class PostEntity extends BaseEntity {
     // TODO: hash tag 알 수 있는 방법 추가하기
     @Column(name = "description")
