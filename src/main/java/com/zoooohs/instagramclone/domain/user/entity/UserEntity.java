@@ -5,6 +5,7 @@ import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -17,6 +18,11 @@ import java.util.Collection;
 @Setter
 @NoArgsConstructor
 @Entity(name = "user")
+@NamedEntityGraphs({
+        @NamedEntityGraph(name = "user-info", attributeNodes = {
+                @NamedAttributeNode("profilePhoto")
+        })
+})
 public class UserEntity extends BaseEntity implements UserDetails {
 
     @Email
