@@ -18,7 +18,6 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
 
     private final JwtTokenProvider jwtTokenProvider;
 
-    // TODO: refresh token 추가하기. 이 상태면 5분마다 새로 로그인해야함 -> refreshtoken으로 어떻게 확인하지?
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         String accessToken = jwtTokenProvider.resolveToken((HttpServletRequest) request);

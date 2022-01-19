@@ -6,6 +6,8 @@ import com.zoooohs.instagramclone.domain.auth.entity.RefreshTokenEntity;
 import com.zoooohs.instagramclone.domain.auth.repository.RefreshTokenRepository;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
+import com.zoooohs.instagramclone.exception.ErrorCode;
+import com.zoooohs.instagramclone.exception.ZooooException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,8 +29,7 @@ public class AuthServiceImpl implements AuthService {
     public AuthDto.Token signUp(AuthDto.SignUp signUp) {
         UserEntity duplicated = this.userRepository.findByEmailAndName(signUp.getEmail(), signUp.getName());
         if (duplicated != null) {
-            // TODO: exception handling
-            return null;
+            throw new ZooooException(ErrorCode.SIGN_UP_DUPLICATED_EMAIL);
         }
         UserEntity user = this.modelMapper.map(signUp, UserEntity.class);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
@@ -39,10 +40,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthDto.Token signIn(AuthDto.SignIn signIn) {
-        // TODO: exception handling
-        UserEntity user = this.userRepository.findByEmail(signIn.getEmail()).orElseThrow(() -> new IllegalArgumentException("not valid user"));
+        UserEntity user = this.userRepository.findByEmail(signIn.getEmail()).orElseThrow(() -> new ZooooException(ErrorCode.LOGIN_WRONG_INFO));
         if (!passwordEncoder.matches(signIn.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("wrong info");
+            throw new ZooooException(ErrorCode.LOGIN_WRONG_INFO);
         }
         return generateNewToken(user.getUsername());
     }
@@ -51,19 +51,14 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthDto.Token refresh(AuthDto.Token token) {
         if (!this.jwtTokenProvider.validRefreshToken(token.getRefreshToken())) {
-            // TODO: Auth Exception 다시 로그인
-            throw new IllegalArgumentException("expired refresh token");
+            this.refreshTokenRepository.deleteByToken(token.getRefreshToken());
+            throw new ZooooException(ErrorCode.TOKEN_EXPIRED);
         }
-        String userName = this.jwtTokenProvider.getAccessTokenUserId(token.getAccessToken());
-        if (userName == null || !userName.equals(this.jwtTokenProvider.getRefreshTokenUserId(token.getRefreshToken()))) {
-            throw new IllegalArgumentException("expired refresh token");
-        }
-        RefreshTokenEntity refreshTokenEntity = this.refreshTokenRepository.findByUserNameAndToken(userName, token.getRefreshToken());
+        RefreshTokenEntity refreshTokenEntity = this.refreshTokenRepository.findByToken(token.getRefreshToken());
         if (refreshTokenEntity == null) {
-            // TODO: 임의로 조작되거나 잘못된 토큰
-            throw new IllegalArgumentException("expired refresh token");
+            throw new ZooooException(ErrorCode.TOKEN_EXPIRED);
         }
-
+        String userName = this.jwtTokenProvider.getRefreshTokenUserId(token.getRefreshToken());
         return generateNewToken(userName);
     }
 

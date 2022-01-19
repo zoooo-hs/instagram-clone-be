@@ -1,7 +1,7 @@
 package com.zoooohs.instagramclone.domain.auth.dto;
 
-import lombok.Builder;
-import lombok.Data;
+import com.zoooohs.instagramclone.util.Patterns;
+import lombok.*;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotNull;
@@ -32,15 +32,22 @@ public class AuthDto {
         private String password;
     }
 
-    @Builder
-    @Data
+    @Getter
+    @Setter
+    @NoArgsConstructor
     public static class Token {
-        // TODO: pattern 관리 util class 만들기
-        @Pattern(regexp = "[\\w\\d]*\\.[\\w\\d]*\\.[\\w\\d]*")
+        @Pattern(regexp = Patterns.JWT)
         @NotNull
         private String accessToken;
-        @Pattern(regexp = "[\\w\\d]*\\.[\\w\\d]*\\.[\\w\\d]*")
+
+        @Pattern(regexp = Patterns.JWT)
         @NotNull
         private String refreshToken;
+
+        @Builder
+        public Token(String accessToken, String refreshToken) {
+            this.accessToken = accessToken;
+            this.refreshToken = refreshToken;
+        }
     }
 }

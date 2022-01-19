@@ -1,6 +1,8 @@
 package com.zoooohs.instagramclone.domain.auth.service;
 
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
+import com.zoooohs.instagramclone.exception.ErrorCode;
+import com.zoooohs.instagramclone.exception.ZooooException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -14,7 +16,6 @@ public class UserDetailServiceImpl implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        // TODO: error exception handling and message
-        return this.userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("no user"));
+        return this.userRepository.findByEmail(username).orElseThrow(() -> new ZooooException(ErrorCode.USER_NOT_FOUND));
     }
 }
