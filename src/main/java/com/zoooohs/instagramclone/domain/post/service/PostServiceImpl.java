@@ -6,7 +6,6 @@ import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
-import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageRequest;
@@ -39,5 +38,13 @@ public class PostServiceImpl implements PostService {
         Pageable pageable = PageRequest.of(pageModel.getIndex(), pageModel.getSize());
         List<PostEntity> postEntities = this.postRepository.findAllExceptUserId(userDto.getId(), pageable);
         return postEntities.stream().map(entity -> modelMapper.map(entity, PostDto.Post.class)).collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<PostDto.Post> findByUserId(Long userId, PageModel pageModel) {
+        // TODO: userDto 추가 -> 현재 유저가 볼 수 있는 게시글만 보게 -> 팔로우 기능 이후
+        List<PostEntity> postEntities = this.postRepository.findByUserId(userId);
+        return postEntities.stream().map(entity -> this.modelMapper.map(entity, PostDto.Post.class)).collect(Collectors.toList());
     }
 }

@@ -25,4 +25,9 @@ public class PostController {
     public List<PostDto.Post> read(@ModelAttribute PageModel pageModel, @AuthenticationPrincipal UserDto userDto) {
         return this.postService.findAllExceptSelf(pageModel, userDto);
     }
+
+    @GetMapping("/user/{userId}/post")
+    public List<PostDto.Post> findAllByUserId(@PathVariable Long userId, @ModelAttribute PageModel pageModel) {
+        return this.postService.findByUserId(userId, pageModel);
+    }
 }

@@ -13,4 +13,7 @@ import java.util.List;
 public interface PostRepository extends JpaRepository<PostEntity, Long> {
     @Query("SELECT p FROM PostEntity p WHERE p.user.id != :userId ORDER BY p.id DESC")
     List<PostEntity> findAllExceptUserId(@Param("userId") Long userId, Pageable pageable);
+
+    // TODO: EntityGraph 추가해서 n+1 select 방지하기
+    List<PostEntity> findByUserId(Long userId);
 }

@@ -23,8 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.BDDMockito.any;
 import static org.mockito.BDDMockito.given;
 
@@ -77,6 +78,27 @@ public class PostServiceImplTest {
         List<PostDto.Post> actual = postService.findAllExceptSelf(pageModel, userDto);
         assertEquals(20, actual.size());
         assertEquals(posts.get(0).getDescription(), actual.get(0).getDescription());
+    }
+
+    @Test
+    public void shouldFindAllPostsOwnedByUserId() {
+        Long userId = 1l;
+        UserEntity user = new UserEntity();
+        user.setId(userId);
+        List<PostEntity> result = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            PostEntity post = new PostEntity();
+            post.setDescription("desc"+i);
+            post.setUser(user);
+            result.add(post);
+        }
+
+        given(postRepository.findByUserId(anyLong())).willReturn(result);
+
+        PageModel pageModel = PageModel.builder().index(0).size(20).build();
+        List<PostDto.Post> posts = this.postService.findByUserId(userId, pageModel);
+
+        assertEquals(posts.size(), posts.stream().filter(post -> post.getUser().getId().equals(userId)).count());
     }
 
     private PostEntity createPostEntity(PostDto.Post postDto) {

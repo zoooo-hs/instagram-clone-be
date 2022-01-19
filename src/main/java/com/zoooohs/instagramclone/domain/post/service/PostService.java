@@ -11,4 +11,6 @@ public interface PostService {
 
     // 자신의 게시물을 제외한 모든 게시물 가져오기
     public List<PostDto.Post> findAllExceptSelf(PageModel pageModel, UserDto userDto);
+
+    public List<PostDto.Post> findByUserId(Long userId, PageModel pageModel);
 }
