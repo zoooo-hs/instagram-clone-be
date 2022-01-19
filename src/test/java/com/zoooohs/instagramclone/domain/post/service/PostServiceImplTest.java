@@ -74,7 +74,7 @@ public class PostServiceImplTest {
         PageModel pageModel = new PageModel();
         pageModel.setIndex(0);
         pageModel.setSize(20);
-        List<PostDto.Post> actual = postService.read(pageModel, userDto);
+        List<PostDto.Post> actual = postService.findAllExceptSelf(pageModel, userDto);
         assertEquals(20, actual.size());
         assertEquals(posts.get(0).getDescription(), actual.get(0).getDescription());
     }

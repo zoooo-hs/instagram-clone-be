@@ -35,7 +35,7 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostDto.Post> read(PageModel pageModel, UserDto userDto) {
+    public List<PostDto.Post> findAllExceptSelf(PageModel pageModel, UserDto userDto) {
         Pageable pageable = PageRequest.of(pageModel.getIndex(), pageModel.getSize());
         List<PostEntity> postEntities = this.postRepository.findAllExceptUserId(userDto.getId(), pageable);
         return postEntities.stream().map(entity -> modelMapper.map(entity, PostDto.Post.class)).collect(Collectors.toList());
