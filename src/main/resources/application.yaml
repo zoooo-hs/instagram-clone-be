@@ -1,9 +1,9 @@
 spring:
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://127.0.0.1:3306/instagram-clone?createDatabaseIfNotExist=true
-    username: root
-    password: mariadb
+    url: jdbc:mariadb://${DB_URL}:${DB_PORT}/${DB_USE}?createDatabaseIfNotExist=true
+    username: ${DB_ID}
+    password: ${DB_PASSWORD}
   jpa:
     database-platform: org.hibernate.dialect.MariaDB103Dialect
     generate-ddl: true
