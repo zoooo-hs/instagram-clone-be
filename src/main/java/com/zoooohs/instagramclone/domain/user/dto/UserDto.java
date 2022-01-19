@@ -8,6 +8,12 @@ public class UserDto {
     private String email;
     private String name;
 
+    @Data
+    public static class Feed {
+        private Long id;
+        private String name;
+    }
+
     public String getUsername() {
         return email;
     }

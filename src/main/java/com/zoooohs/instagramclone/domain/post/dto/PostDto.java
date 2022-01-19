@@ -1,6 +1,7 @@
 package com.zoooohs.instagramclone.domain.post.dto;
 
 import com.zoooohs.instagramclone.domain.photo.dto.PhotoDto;
+import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -13,5 +14,6 @@ public class PostDto {
         @NotNull
         private String description;
         private List<PhotoDto.Photo> photos;
+        private UserDto.Feed user;
     }
 }
