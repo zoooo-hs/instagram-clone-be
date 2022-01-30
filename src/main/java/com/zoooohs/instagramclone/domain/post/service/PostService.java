@@ -13,4 +13,6 @@ public interface PostService {
     public List<PostDto.Post> findAllExceptSelf(PageModel pageModel, UserDto userDto);
 
     public List<PostDto.Post> findByUserId(Long userId, PageModel pageModel);
+
+    PostDto.Post updateDescription(Long postId, PostDto.Post post, UserDto userDto);
 }

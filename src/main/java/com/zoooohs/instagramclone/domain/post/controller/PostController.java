@@ -30,4 +30,9 @@ public class PostController {
     public List<PostDto.Post> findAllByUserId(@PathVariable Long userId, @ModelAttribute PageModel pageModel) {
         return this.postService.findByUserId(userId, pageModel);
     }
+
+    @PatchMapping("/post/{postId}/description")
+    public PostDto.Post updateDescription(@PathVariable Long postId, @RequestBody PostDto.Post post, @AuthenticationPrincipal UserDto userDto) {
+        return this.postService.updateDescription(postId, post, userDto);
+    }
 }

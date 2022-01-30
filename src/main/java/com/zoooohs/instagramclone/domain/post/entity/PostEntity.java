@@ -3,11 +3,13 @@ package com.zoooohs.instagramclone.domain.post.entity;
 import com.zoooohs.instagramclone.domain.common.entity.BaseEntity;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -40,7 +42,12 @@ public class PostEntity extends BaseEntity {
                 photo.setPost(this);
             }
         }
-
     }
 
+    @Builder
+    public PostEntity(String description, UserEntity user) {
+        this.description = description;
+        this.user = user;
+        this.photos = new ArrayList<>();
+    }
 }
