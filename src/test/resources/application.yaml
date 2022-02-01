@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3006/instagram-clone-test-db?createDatabaseIfNotExist=true
+    url: jdbc:mariadb://localhost:3306/instagram-clone-test-db?createDatabaseIfNotExist=true
     username: root
     password: mariadb
   jpa:
