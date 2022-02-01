@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 
@@ -43,23 +44,21 @@ public class JwtTokenProvider {
 
 
     public String createAccessToken(String userId) {
-        Claims claims = Jwts.claims().setSubject(userId);
-        Date now = new Date();
-        return Jwts.builder()
-                .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(new Date((now.getTime() + accessTokenValidTime)))
-                .signWith(SignatureAlgorithm.HS256, accessTokenKey)
-                .compact();
+        return createToken(userId, accessTokenValidTime, accessTokenKey);
     }
+
     public String createRefreshToken(String userId) {
+        return createToken(userId, refreshTokenValidTime, refreshTokenKey);
+    }
+
+    private String createToken(String userId, long accessTokenValidTime, String accessTokenKey) {
         Claims claims = Jwts.claims().setSubject(userId);
-        Date now = new Date();
+        Instant now = Instant.now();
         return Jwts.builder()
                 .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(new Date((now.getTime() + refreshTokenValidTime)))
-                .signWith(SignatureAlgorithm.HS256, refreshTokenKey)
+                .setIssuedAt(Date.from(now))
+                .setExpiration(new Date((now.toEpochMilli() + accessTokenValidTime)))
+                .signWith(SignatureAlgorithm.HS256, accessTokenKey)
                 .compact();
     }
 
@@ -69,10 +68,15 @@ public class JwtTokenProvider {
     }
 
     public String getAccessTokenUserId(String token) {
-        return Jwts.parser().setSigningKey(accessTokenKey).parseClaimsJws(token).getBody().getSubject();
+        return getUserIdFromToken(token, accessTokenKey);
     }
+
     public String getRefreshTokenUserId(String token) {
-        return Jwts.parser().setSigningKey(refreshTokenKey).parseClaimsJws(token).getBody().getSubject();
+        return getUserIdFromToken(token, refreshTokenKey);
+    }
+
+    private String getUserIdFromToken(String token, String accessTokenKey) {
+        return Jwts.parser().setSigningKey(accessTokenKey).parseClaimsJws(token).getBody().getSubject();
     }
 
     public String resolveToken(HttpServletRequest request) {
@@ -80,18 +84,17 @@ public class JwtTokenProvider {
     }
 
     public boolean validAccessToken(String jwtToken) {
-        try {
-            Jws<Claims> claims = Jwts.parser().setSigningKey(accessTokenKey).parseClaimsJws(jwtToken);
-            return !claims.getBody().getExpiration().before(new Date());
-        } catch (Exception e) {
-            return false;
-        }
+        return isValidToken(jwtToken, accessTokenKey);
     }
 
     public boolean validRefreshToken(String jwtToken) {
+        return isValidToken(jwtToken, refreshTokenKey);
+    }
+
+    private boolean isValidToken(String jwtToken, String refreshTokenKey) {
         try {
             Jws<Claims> claims = Jwts.parser().setSigningKey(refreshTokenKey).parseClaimsJws(jwtToken);
-            return !claims.getBody().getExpiration().before(new Date());
+            return !claims.getBody().getExpiration().before(Date.from(Instant.now()));
         } catch (Exception e) {
             return false;
         }

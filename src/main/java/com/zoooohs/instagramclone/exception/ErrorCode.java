@@ -14,7 +14,7 @@ public enum ErrorCode {
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."),
 
     // 409 CONFLICT
-    SIGN_UP_DUPLICATED_EMAIL(HttpStatus.CONFLICT, "중복 된 email 입니다."),
+    SIGN_UP_DUPLICATED_EMAIL_OR_NAME(HttpStatus.CONFLICT, "중복 된 email 혹은 name 입니다."),
 
     ;
 
