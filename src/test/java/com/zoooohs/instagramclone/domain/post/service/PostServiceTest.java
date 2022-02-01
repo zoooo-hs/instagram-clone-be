@@ -25,8 +25,9 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.BDDMockito.any;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class PostServiceTest {
@@ -168,4 +169,27 @@ public class PostServiceTest {
         }
     }
 
+    @Test
+    public void deleteByIdTest() {
+        Long postId = 1L;
+        Long userId = 1L;
+        PostEntity postEntity = this.modelMapper.map(post, PostEntity.class);
+        postEntity.setId(postId);
+
+        given(postRepository.findByIdAndUserId(eq(postId), eq(userId))).willReturn(postEntity);
+        doNothing().when(postRepository).delete(postEntity);
+
+        Long actual = this.postService.deleteById(postId, userId);
+        assertEquals(postId, actual);
+
+        given(postRepository.findByIdAndUserId(eq(postId), eq(userId))).willReturn(null);
+        try {
+            this.postService.deleteById(postId, userId);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+    }
 }

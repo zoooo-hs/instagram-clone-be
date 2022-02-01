@@ -61,4 +61,14 @@ public class PostServiceImpl implements PostService {
         PostDto.Post result = this.modelMapper.map(postEntity, PostDto.Post.class);
         return result;
     }
+
+    @Override
+    public Long deleteById(Long postId, Long userId) {
+        PostEntity postEntity = this.postRepository.findByIdAndUserId(postId, userId);
+        if (postEntity == null) {
+            throw new ZooooException(ErrorCode.POST_NOT_FOUND);
+        }
+        this.postRepository.delete(postEntity);
+        return postId;
+    }
 }

@@ -147,4 +147,21 @@ public class PostControllerTest {
                 .content(objectMapper.writeValueAsBytes(post)))
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
+
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L)
+    public void deleteByIdTest() throws Exception {
+        String url = String.format("/post/%d", 1l);
+
+        given(postService.deleteById(eq(1L), eq(1L))).willReturn(1L);
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(url))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("1"));
+
+        given(postService.deleteById(eq(1L), eq(1L))).willThrow(new ZooooException(ErrorCode.POST_NOT_FOUND));
+
+        mockMvc.perform(MockMvcRequestBuilders.delete(url))
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
 }

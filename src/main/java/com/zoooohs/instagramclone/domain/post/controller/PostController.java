@@ -35,4 +35,9 @@ public class PostController {
     public PostDto.Post updateDescription(@PathVariable Long postId, @RequestBody PostDto.Post post, @AuthenticationPrincipal UserDto userDto) {
         return this.postService.updateDescription(postId, post, userDto);
     }
+
+    @DeleteMapping("/post/{postId}")
+    public Long deleteById(@PathVariable Long postId, @AuthenticationPrincipal UserDto userDto) {
+        return this.postService.deleteById(postId, userDto.getId());
+    }
 }

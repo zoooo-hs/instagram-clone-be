@@ -21,6 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @EnableJpaAuditing
 @DataJpaTest
@@ -119,5 +120,27 @@ public class PostRepositoryTest {
         for (PostEntity p : actual) {
             assertTrue(user.getId() == p.getUser().getId());
         }
+    }
+
+    @Test
+    public void findByIdAndUserIdTest() {
+        this.postRepository.save(post1);
+
+        PostEntity actual = this.postRepository.findByIdAndUserId(post1.getId(), user.getId());
+        PostEntity nullActual = this.postRepository.findByIdAndUserId(post1.getId(), 123L);
+
+        assertEquals(post1.getId(), actual.getId());
+        assertEquals(post1.getDescription(), actual.getDescription());
+        assertEquals(null, nullActual);
+    }
+
+    @Test
+    public void deleteByIdTest() {
+        post1 = this.postRepository.save(post1);
+
+        this.postRepository.delete(post1);
+        Optional<PostEntity> actual = this.postRepository.findById(post1.getId());
+
+        assertTrue(actual.isEmpty());
     }
 }

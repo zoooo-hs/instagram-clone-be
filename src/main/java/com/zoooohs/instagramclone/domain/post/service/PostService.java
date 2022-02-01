@@ -15,4 +15,6 @@ public interface PostService {
     public List<PostDto.Post> findByUserId(Long userId, PageModel pageModel);
 
     PostDto.Post updateDescription(Long postId, PostDto.Post post, UserDto userDto);
+
+    Long deleteById(Long postId, Long userId);
 }
