@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
@@ -82,7 +83,7 @@ public class AuthServiceTest {
                 .email(email).name(name).build();
         user.setId(1L);
 
-        given(this.userRepository.findByEmailAndName(eq(email), eq(name))).willReturn(null);
+        given(this.userRepository.findByEmailAndName(eq(email), eq(name))).willReturn(Optional.ofNullable(null));
         given(this.userRepository.save(any(UserEntity.class))).willReturn(user);
 
         AuthDto.Token actual = this.authService.signUp(signUpDto);
@@ -137,6 +138,7 @@ public class AuthServiceTest {
     @Test
     public void refreshTest() {
         AuthDto.Token token = AuthDto.Token.builder()
+                .accessToken(this.jwtTokenProvider.createAccessToken(testUser.getUsername()))
                 .refreshToken(this.jwtTokenProvider.createRefreshToken(testUser.getUsername())).build();
 
         given(this.refreshTokenRepository.findByToken(eq(token.getRefreshToken()))).willReturn(RefreshTokenEntity.builder().build());
@@ -154,7 +156,8 @@ public class AuthServiceTest {
 
         Instant now = Instant.ofEpochMilli(Instant.now().toEpochMilli() + 2*24*60*60*1000);
 
-        mockStatic(Instant.class).when(() -> Instant.now()).thenReturn(now);
+        MockedStatic<Instant> instantMockedStatic = mockStatic(Instant.class);
+        instantMockedStatic.when(() -> Instant.now()).thenReturn(now);
 
         try {
             AuthDto.Token actual = this.authService.refresh(token);
@@ -163,6 +166,8 @@ public class AuthServiceTest {
             assertEquals(ErrorCode.TOKEN_EXPIRED, e.getErrorCode());
         } catch (Exception e) {
             fail();
+        } finally {
+            instantMockedStatic.close();
         }
     }
 

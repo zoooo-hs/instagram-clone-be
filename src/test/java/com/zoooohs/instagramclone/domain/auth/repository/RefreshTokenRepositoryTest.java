@@ -24,10 +24,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(MockitoExtension.class)
 @EnableJpaAuditing
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@ExtendWith(MockitoExtension.class)
 public class RefreshTokenRepositoryTest {
 
     @Autowired

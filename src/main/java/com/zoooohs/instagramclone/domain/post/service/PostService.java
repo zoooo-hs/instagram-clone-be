@@ -10,7 +10,7 @@ public interface PostService {
     public PostDto.Post create(PostDto.Post postDto, UserDto userDto);
 
     // 자신의 게시물을 제외한 모든 게시물 가져오기
-    public List<PostDto.Post> findAllExceptSelf(PageModel pageModel, UserDto userDto);
+    public List<PostDto.Post> findAllExceptSelf(Long userId, PageModel pageModel);
 
     public List<PostDto.Post> findByUserId(Long userId, PageModel pageModel);
 

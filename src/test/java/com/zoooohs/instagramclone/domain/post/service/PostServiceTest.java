@@ -1,9 +1,11 @@
 package com.zoooohs.instagramclone.domain.post.service;
 
+import com.zoooohs.instagramclone.domain.common.model.PageModel;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
+import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.exception.ErrorCode;
 import com.zoooohs.instagramclone.exception.ZooooException;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,8 +16,10 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,7 +42,7 @@ public class PostServiceTest {
     UserDto user;
 
     @BeforeEach
-    public void init() {
+    public void setUp() {
         MockitoAnnotations.openMocks(this);
         postService = new PostServiceImpl(postRepository, modelMapper);
         user = UserDto.builder().id(1L).build();
@@ -47,7 +51,64 @@ public class PostServiceTest {
     }
 
     @Test
-    public void shouldUpdatePostDescription() {
+    public void createPostTest() {
+        PostEntity postEntity = this.modelMapper.map(post, PostEntity.class);
+        postEntity.setId(1L);
+        given(postRepository.save(any(PostEntity.class))).willReturn(postEntity);
+
+        PostDto.Post actual = this.postService.create(post, user);
+
+        assertTrue(actual.getId() != null);
+        assertEquals(post.getDescription(), actual.getDescription());
+    }
+
+    @Test
+    public void findAllExceptSelfTest() {
+        UserEntity anotherUser = UserEntity.builder().build();
+        anotherUser.setId(2L);
+        List<PostEntity> posts = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            PostEntity post = new PostEntity();
+            post.setDescription("desc"+i);
+            post.setUser(anotherUser);
+            posts.add(post);
+        }
+
+        given(this.postRepository.findAllExceptUserId(eq(user.getId()), eq(PageRequest.of(0, 20)))).willReturn(posts.subList(0, 20));
+
+        List<PostDto.Post> actual = this.postService.findAllExceptSelf(user.getId(), PageModel.builder().index(0).size(20).build());
+
+        assertTrue(20 >= actual.size());
+        assertTrue(0 < actual.size());
+        for (PostDto.Post p: actual) {
+            assertTrue(user.getId() != p.getUser().getId());
+        }
+    }
+
+    @Test
+    public void findByUserIdTest() {
+        UserEntity userEntity = this.modelMapper.map(user, UserEntity.class);
+        List<PostEntity> posts = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            PostEntity post = new PostEntity();
+            post.setDescription("desc"+i);
+            post.setUser(userEntity);
+            posts.add(post);
+        }
+
+        given(this.postRepository.findByUserId(eq(user.getId()), eq(PageRequest.of(0, 20)))).willReturn(posts.subList(0, 20));
+
+        List<PostDto.Post> actual = this.postService.findByUserId(user.getId(), PageModel.builder().index(0).size(20).build());
+
+        assertTrue(20 >= actual.size());
+        assertTrue(0 < actual.size());
+        for (PostDto.Post p: actual) {
+            assertTrue(user.getId() == p.getUser().getId());
+        }
+    }
+
+    @Test
+    public void updateDescriptionTest() {
         UserDto.Feed userFeed = this.modelMapper.map(user, UserDto.Feed.class);
         PostDto.Post post2 = PostDto.Post.builder().user(userFeed).description("another desc").build();
 
@@ -71,7 +132,7 @@ public class PostServiceTest {
     }
 
     @Test
-    public void failedUpdateDescription404() {
+    public void updateDescriptionFailureTest() {
         user.setId(2L);
         UserDto user2 = UserDto.builder().id(3L).build();
 
@@ -79,9 +140,32 @@ public class PostServiceTest {
 
         given(this.postRepository.findById(anyLong())).willReturn(Optional.ofNullable(null));
 
-        assertThrows(ZooooException.class, () -> this.postService.updateDescription(2L, post2, user));
-        assertThrows(ZooooException.class, () -> this.postService.updateDescription(1L, post, user));
-        assertThrows(ZooooException.class, () -> this.postService.updateDescription(1L, post, user2));
+        try {
+            this.postService.updateDescription(2L, post2, user);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+
+        try {
+            this.postService.updateDescription(1L, post, user);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+
+        try {
+            this.postService.updateDescription(1L, post, user2);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
     }
 
 }
