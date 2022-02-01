@@ -11,6 +11,7 @@ import javax.validation.constraints.Size;
 public class AuthDto {
 
     @Data
+    @NoArgsConstructor
     public static class SignUp {
         @NotNull
         @Email
@@ -21,15 +22,29 @@ public class AuthDto {
         private String name;
         @NotNull
         private String password;
+
+        @Builder
+        public SignUp(String email, String name, String password) {
+            this.email = email;
+            this.name = name;
+            this.password = password;
+        }
     }
 
     @Data
+    @NoArgsConstructor
     public static class SignIn {
         @NotNull
         @Email
         private String email;
         @NotNull
         private String password;
+
+        @Builder
+        public SignIn(String email, String password) {
+            this.email = email;
+            this.password = password;
+        }
     }
 
     @Getter

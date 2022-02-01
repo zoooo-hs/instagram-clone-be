@@ -17,5 +17,6 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     List<PostEntity> findAllExceptUserId(@Param("userId") Long userId, Pageable pageable);
 
     @EntityGraph("post-feed")
-    List<PostEntity> findByUserId(Long userId);
+    @Query("SELECT p FROM PostEntity p WHERE p.user.id = :userId ORDER BY p.id DESC")
+    List<PostEntity> findByUserId(@Param("userId") Long userId, Pageable pageable);
 }

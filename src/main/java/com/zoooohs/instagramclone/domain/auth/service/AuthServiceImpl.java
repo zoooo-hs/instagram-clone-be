@@ -14,6 +14,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 
 @RequiredArgsConstructor
 @Service
@@ -27,9 +29,9 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthDto.Token signUp(AuthDto.SignUp signUp) {
-        UserEntity duplicated = this.userRepository.findByEmailAndName(signUp.getEmail(), signUp.getName());
-        if (duplicated != null) {
-            throw new ZooooException(ErrorCode.SIGN_UP_DUPLICATED_EMAIL);
+        Optional<UserEntity> duplicated = this.userRepository.findByEmailAndName(signUp.getEmail(), signUp.getName());
+        if (duplicated.isPresent()) {
+            throw new ZooooException(ErrorCode.SIGN_UP_DUPLICATED_EMAIL_OR_NAME);
         }
         UserEntity user = this.modelMapper.map(signUp, UserEntity.class);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
