@@ -19,3 +19,5 @@ logging:
           hibernate: info
 
 
+storage:
+  filesystem: ${STORAGE_FS}

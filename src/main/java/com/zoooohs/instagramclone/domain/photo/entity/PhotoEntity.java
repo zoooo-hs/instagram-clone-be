@@ -20,7 +20,7 @@ public class PhotoEntity extends BaseEntity {
     private String path;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false)
+    @JoinColumn(name = "post_id")
     private PostEntity post;
 
     public void setPost(PostEntity post) {
