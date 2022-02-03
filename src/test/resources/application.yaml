@@ -1,4 +1,8 @@
 spring:
+  profiles:
+    include:
+      - aws
+      - credentials
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://localhost:3306/instagram-clone-test-db?createDatabaseIfNotExist=true
@@ -17,7 +21,6 @@ logging:
     level:
         org:
           hibernate: info
-
 
 storage:
   filesystem: ${STORAGE_FS}

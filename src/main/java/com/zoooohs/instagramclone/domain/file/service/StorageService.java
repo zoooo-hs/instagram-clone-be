@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface StorageService {
     List<String> store(List<MultipartFile> files);
+
+    void setBucketName(String bucketName);
 }

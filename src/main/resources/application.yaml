@@ -1,4 +1,8 @@
 spring:
+  profiles:
+    include:
+      - aws
+      - credentials
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://${DB_URL}:${DB_PORT}/${DB_USE}?createDatabaseIfNotExist=true
