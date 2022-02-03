@@ -4,6 +4,7 @@ package com.zoooohs.instagramclone.domain.post.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zoooohs.instagramclone.configuration.SecurityConfiguration;
 import com.zoooohs.instagramclone.configure.WithAuthUser;
+import com.zoooohs.instagramclone.domain.photo.dto.PhotoDto;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.service.PostService;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
@@ -23,9 +24,17 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockMultipartHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.Part;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 import static org.mockito.BDDMockito.*;
 
@@ -55,6 +64,7 @@ public class PostControllerTest {
     UserDto user;
     PostDto.Post post;
 
+
     @BeforeEach
     public void setUp() {
         objectMapper = new ObjectMapper();
@@ -76,20 +86,25 @@ public class PostControllerTest {
     public void createTest() throws Exception {
         String url = "/post";
 
-        given(postService.create(eq(post), any(UserDto.class))).willReturn(post);
+        MockMultipartHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders.multipart(url);
+        List<MultipartFile> files = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            MockMultipartFile file =
+                    new MockMultipartFile("files", String.format("file_%d.txt", i),
+                            MediaType.TEXT_PLAIN_VALUE, String.format("some contents %d", i).getBytes());
+            files.add(file);
+            requestBuilder.file(file);
+            post.getPhotos().add(new PhotoDto.Photo());
+        }
+        requestBuilder.param("description", post.getDescription());
 
-        mockMvc.perform(MockMvcRequestBuilders.post(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(post)))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.description", Matchers.equalTo("Hello World!")));
+        given(postService.create(any(PostDto.Post.class), anyList(), any(UserDto.class))).willReturn(post);
 
-        post.setDescription("Bye World!");
-        mockMvc.perform(MockMvcRequestBuilders.post(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(post)))
+        String result = mockMvc.perform(requestBuilder)
                 .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.description", Matchers.equalTo("Bye World!")));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.description", Matchers.equalTo("Hello World!")))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.photos", Matchers.hasSize(files.size())))
+                .andReturn().getResponse().getContentAsString();
     }
 
     @Test

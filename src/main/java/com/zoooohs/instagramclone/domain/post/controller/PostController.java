@@ -5,10 +5,13 @@ import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.service.PostService;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 
 @RequiredArgsConstructor
@@ -16,9 +19,10 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
 
-    @PostMapping("/post")
-    public PostDto.Post create(@RequestBody @Valid PostDto.Post postDto, @AuthenticationPrincipal UserDto userDto) {
-        return this.postService.create(postDto, userDto);
+    @PostMapping(value = "/post")
+    public PostDto.Post create(@RequestParam("description") @NotNull String description, @RequestPart("files") List<MultipartFile> files, @AuthenticationPrincipal UserDto userDto) {
+        PostDto.Post result = this.postService.create(PostDto.Post.builder().description(description).build(), files, userDto);
+        return result;
     }
 
     @GetMapping("/post")

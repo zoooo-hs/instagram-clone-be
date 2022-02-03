@@ -1,6 +1,8 @@
 package com.zoooohs.instagramclone.domain.post.service;
 
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
+import com.zoooohs.instagramclone.domain.file.service.StorageService;
+import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
@@ -17,17 +19,20 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.*;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class PostServiceTest {
@@ -38,6 +43,8 @@ public class PostServiceTest {
     ModelMapper modelMapper;
     @Mock
     PostRepository postRepository;
+    @Mock
+    StorageService storageService;
 
     PostDto.Post post;
     UserDto user;
@@ -45,7 +52,7 @@ public class PostServiceTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        postService = new PostServiceImpl(postRepository, modelMapper);
+        postService = new PostServiceImpl(postRepository, modelMapper, storageService);
         user = UserDto.builder().id(1L).build();
         UserDto.Feed userFeed = this.modelMapper.map(user, UserDto.Feed.class);
         post = PostDto.Post.builder().description("some desc").user(userFeed).build();
@@ -55,12 +62,26 @@ public class PostServiceTest {
     public void createPostTest() {
         PostEntity postEntity = this.modelMapper.map(post, PostEntity.class);
         postEntity.setId(1L);
+
+        List<MultipartFile> files = new ArrayList<>();
+        for (int i = 0; i < 10; i++) {
+            MockMultipartFile file =
+                    new MockMultipartFile("files", String.format("file_%d.txt", i),
+                            MediaType.TEXT_PLAIN_VALUE, String.format("some contents %d", i).getBytes());
+            files.add(file);
+        }
+        List<String> photoPaths = files.stream().map(file -> UUID.randomUUID().toString()).collect(Collectors.toList());
+        List<PhotoEntity> photos = photoPaths.stream().map(path -> PhotoEntity.builder().path(path).build()).collect(Collectors.toList());
+        postEntity.setPhotos(photos);
+
+        given(storageService.store(eq(files))).willReturn(photoPaths);
         given(postRepository.save(any(PostEntity.class))).willReturn(postEntity);
 
-        PostDto.Post actual = this.postService.create(post, user);
+        PostDto.Post actual = this.postService.create(post, files, user);
 
         assertTrue(actual.getId() != null);
         assertEquals(post.getDescription(), actual.getDescription());
+        assertEquals(files.size(), actual.getPhotos().size());
     }
 
     @Test
