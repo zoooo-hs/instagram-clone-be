@@ -1,4 +1,8 @@
 spring:
+  profiles:
+    include:
+      - aws
+      - credentials
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://${DB_URL}:${DB_PORT}/${DB_USE}?createDatabaseIfNotExist=true
@@ -11,6 +15,10 @@ spring:
     database: mysql
     hibernate:
       ddl-auto: update
+  servlet:
+    multipart:
+      maxFileSize: 10MB
+      maxRequestSize: 10MB
 
 
 logging:
@@ -18,4 +26,5 @@ logging:
         org:
           hibernate: info
 
-
+storage:
+  filesystem: ${STORAGE_FS}

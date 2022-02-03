@@ -1,6 +1,8 @@
 package com.zoooohs.instagramclone.domain.post.service;
 
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
+import com.zoooohs.instagramclone.domain.file.service.StorageService;
+import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
@@ -14,6 +16,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,14 +26,17 @@ import java.util.stream.Collectors;
 public class PostServiceImpl implements PostService {
     private final PostRepository postRepository;
     private final ModelMapper modelMapper;
+    private final StorageService storageService;
 
     @Transactional
     @Override
-    public PostDto.Post create(PostDto.Post postDto, UserDto userDto) {
-        // TODO: file upload and dto -> file
+    public PostDto.Post create(PostDto.Post postDto, List<MultipartFile> files, UserDto userDto) {
+        List<String> photoPaths = this.storageService.store(files);
+        List<PhotoEntity> photos = photoPaths.stream().map(path -> PhotoEntity.builder().path(path).build()).collect(Collectors.toList());
         UserEntity user = this.modelMapper.map(userDto, UserEntity.class);
         PostEntity post = this.modelMapper.map(postDto, PostEntity.class);
         post.setUser(user);
+        post.setPhotos(photos);
         post = this.postRepository.save(post);
         return this.modelMapper.map(post, PostDto.Post.class);
     }
@@ -60,5 +66,15 @@ public class PostServiceImpl implements PostService {
         postEntity = this.postRepository.save(postEntity);
         PostDto.Post result = this.modelMapper.map(postEntity, PostDto.Post.class);
         return result;
+    }
+
+    @Override
+    public Long deleteById(Long postId, Long userId) {
+        PostEntity postEntity = this.postRepository.findByIdAndUserId(postId, userId);
+        if (postEntity == null) {
+            throw new ZooooException(ErrorCode.POST_NOT_FOUND);
+        }
+        this.postRepository.delete(postEntity);
+        return postId;
     }
 }

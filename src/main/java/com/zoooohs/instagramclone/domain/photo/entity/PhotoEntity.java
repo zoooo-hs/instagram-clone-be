@@ -2,10 +2,7 @@ package com.zoooohs.instagramclone.domain.photo.entity;
 
 import com.zoooohs.instagramclone.domain.common.entity.BaseEntity;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -20,8 +17,14 @@ public class PhotoEntity extends BaseEntity {
     private String path;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false)
+    @JoinColumn(name = "post_id")
     private PostEntity post;
+
+    @Builder
+    public PhotoEntity(String path, PostEntity post) {
+        this.path = path;
+        this.post = post;
+    }
 
     public void setPost(PostEntity post) {
         this.post = post;

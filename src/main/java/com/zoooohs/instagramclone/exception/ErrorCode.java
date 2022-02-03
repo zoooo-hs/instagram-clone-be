@@ -16,6 +16,9 @@ public enum ErrorCode {
     // 409 CONFLICT
     SIGN_UP_DUPLICATED_EMAIL_OR_NAME(HttpStatus.CONFLICT, "중복 된 email 혹은 name 입니다."),
 
+    // 500 INTERNAL
+    INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류"),
+
     ;
 
     private HttpStatus status;
