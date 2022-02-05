@@ -5,7 +5,10 @@ import com.zoooohs.instagramclone.configuration.SecurityConfiguration;
 import com.zoooohs.instagramclone.configure.WithAuthUser;
 import com.zoooohs.instagramclone.domain.comment.dto.CommentDto;
 import com.zoooohs.instagramclone.domain.comment.service.CommentService;
+import com.zoooohs.instagramclone.domain.common.model.PageModel;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
+import com.zoooohs.instagramclone.exception.ErrorCode;
+import com.zoooohs.instagramclone.exception.ZooooException;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -20,10 +23,14 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
+
+import java.util.ArrayList;
 
 import static org.mockito.BDDMockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @AutoConfigureMockMvc(addFilters = false)
@@ -64,11 +71,42 @@ public class CommentControllerTest {
 
         given(this.commentService.create(any(CommentDto.class), anyLong(), any(UserDto.class))).willReturn(commentDto);
 
-        mockMvc.perform(MockMvcRequestBuilders.post(url)
+        mockMvc.perform(post(url)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
                 .content(objectMapper.writeValueAsBytes(commentDto)))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.id", Matchers.instanceOf(Integer.class)))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.content", Matchers.is(content)));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", Matchers.instanceOf(Integer.class)))
+                .andExpect(jsonPath("$.content", Matchers.is(content)));
+    }
+
+    @DisplayName("GET /post/{postId}/comment 입력, comment 리스트 반환, 없는 postid의 경우 404")
+    @Test
+    public void getPostCommentListTest() throws Exception {
+        Long postId = 1L;
+        String url = String.format("/post/%d/comment", postId);
+        String url404 = String.format("/post/%d/comment", 2L);
+
+        ArrayList<CommentDto> commentDtos = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            CommentDto commentDto = CommentDto.builder()
+                    .content("content " + i)
+                    .user(UserDto.Feed.builder().name("user"+1).id((long) i).build()).build();
+        }
+
+        PageModel pageModel = PageModel.builder().index(0).size(20).build();
+
+        given(this.commentService.getPostCommentList(postId, pageModel)).willReturn(commentDtos);
+        given(this.commentService.getPostCommentList(eq(2L), any(PageModel.class))).willThrow(new ZooooException(ErrorCode.POST_NOT_FOUND));
+
+        mockMvc.perform(get(url)
+                        .param("index", "0")
+                        .param("size", "20")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.hasSize(commentDtos.size())));
+
+        mockMvc.perform(get(url404))
+                .andExpect(status().isNotFound());
+
     }
 }

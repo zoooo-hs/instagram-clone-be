@@ -1,5 +1,6 @@
 package com.zoooohs.instagramclone.domain.comment.dto;
 
+import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,8 +14,11 @@ public class CommentDto {
     @NotNull
     private String content;
 
+    private UserDto.Feed user;
+
     @Builder
-    public CommentDto(String content) {
+    public CommentDto(String content, UserDto.Feed user) {
         this.content = content;
+        this.user = user;
     }
 }

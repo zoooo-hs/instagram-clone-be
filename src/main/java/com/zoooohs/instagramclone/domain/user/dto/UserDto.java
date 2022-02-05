@@ -20,9 +20,16 @@ public class UserDto {
     }
 
     @Data
+    @NoArgsConstructor
     public static class Feed {
         private Long id;
         private String name;
+
+        @Builder
+        public Feed(Long id, String name) {
+            this.id = id;
+            this.name = name;
+        }
     }
 
     @Data

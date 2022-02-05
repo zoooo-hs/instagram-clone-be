@@ -14,6 +14,11 @@ import javax.persistence.*;
 @Setter
 @NoArgsConstructor
 @Entity
+@NamedEntityGraphs({
+        @NamedEntityGraph(name = "comment-user", attributeNodes = {
+                @NamedAttributeNode(value = "user"),
+        }),
+})
 public class CommentEntity extends BaseEntity {
     @Column(name = "content")
     private String content;
