@@ -80,7 +80,11 @@ public class JwtTokenProvider {
     }
 
     public String resolveToken(HttpServletRequest request) {
-        return request.getHeader("Authorization").substring("Bearer ".length());
+        String authorization = request.getHeader("Authorization");
+        if (authorization == null) {
+            return null;
+        }
+        return authorization.substring("Bearer ".length());
     }
 
     public boolean validAccessToken(String jwtToken) {
