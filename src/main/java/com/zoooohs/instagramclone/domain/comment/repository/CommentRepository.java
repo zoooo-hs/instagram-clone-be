@@ -12,4 +12,6 @@ import java.util.List;
 public interface CommentRepository extends JpaRepository<CommentEntity, Long> {
     @EntityGraph("comment-user")
     List<CommentEntity> findByPostId(Long postId, Pageable pageable);
+
+    CommentEntity findByIdAndUserId(Long commentId, Long userId);
 }

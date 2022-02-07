@@ -27,8 +27,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.ArrayList;
 
 import static org.mockito.BDDMockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -108,5 +107,28 @@ public class CommentControllerTest {
         mockMvc.perform(get(url404))
                 .andExpect(status().isNotFound());
 
+    }
+
+    @DisplayName("PATCH /comment/{commentId}, body, jwt 입력 받아 comment json 반환. 없는 comment의 경우 404 return")
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L)
+    public void updateCommentTest() throws Exception {
+        String url = String.format("/comment/%d", 1L);
+        String url404 = String.format("/comment/%d", 2L);
+        String content = "another content";
+        CommentDto commentDto = CommentDto.builder().content(content).build();
+
+        given(this.commentService.updateComment(eq(1L), eq(commentDto), any(UserDto.class))).willReturn(commentDto);
+        given(this.commentService.updateComment(eq(2L), eq(commentDto), any(UserDto.class))).willThrow(new ZooooException(ErrorCode.COMMENT_NOT_FOUND));
+
+        mockMvc.perform(patch(url).contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsBytes(commentDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content", Matchers.is(content)));
+
+
+        mockMvc.perform(patch(url404).contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsBytes(commentDto)))
+                .andExpect(status().isNotFound());
     }
 }

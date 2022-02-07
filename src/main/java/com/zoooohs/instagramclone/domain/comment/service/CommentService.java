@@ -10,4 +10,6 @@ public interface CommentService {
     CommentDto create(CommentDto commentDto, Long postId, UserDto userDto);
 
     List<CommentDto> getPostCommentList(Long postId, PageModel pageModel);
+
+    CommentDto updateComment(Long commentId, CommentDto commentDto, UserDto userDto);
 }

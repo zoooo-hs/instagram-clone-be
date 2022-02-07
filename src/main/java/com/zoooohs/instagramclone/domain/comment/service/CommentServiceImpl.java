@@ -45,4 +45,15 @@ public class CommentServiceImpl implements CommentService {
         List<CommentEntity> comments = this.commentRepository.findByPostId(post.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
         return comments.stream().map(entity -> this.modelMapper.map(entity, CommentDto.class)).collect(Collectors.toList());
     }
+
+    @Override
+    public CommentDto updateComment(Long commentId, CommentDto commentDto, UserDto userDto) {
+        CommentEntity comment = this.commentRepository.findByIdAndUserId(commentId, userDto.getId());
+        if (comment == null) {
+            throw new ZooooException(ErrorCode.COMMENT_NOT_FOUND);
+        }
+        comment.setContent(commentDto.getContent());
+        comment = this.commentRepository.save(comment);
+        return this.modelMapper.map(comment, CommentDto.class);
+    }
 }

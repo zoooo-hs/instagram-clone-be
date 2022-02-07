@@ -93,4 +93,22 @@ public class CommentRepositoryTest {
         assertNotEquals(null, actual);
         assertEquals(pageSize, actual.size());
     }
+
+    @DisplayName("commentRepository.findByIdAndUserId commentId, userId 받아와서 해당 유저의 댓글 가져오는 기능 테스트")
+    @Test
+    public void findByIdAndUserIdTest() {
+        CommentEntity comment = new CommentEntity();
+        comment.setContent("content22");
+        comment.setUser(user);
+        comment.setPost(post);
+        comment = this.commentRepository.save(comment);
+
+        CommentEntity actual = this.commentRepository.findByIdAndUserId(comment.getId(), user.getId());
+        CommentEntity actualNull = this.commentRepository.findByIdAndUserId(comment.getId(), user.getId()+3L);
+
+        assertNotNull(comment);
+        assertEquals(comment.getId(), actual.getId());
+        assertEquals(comment.getContent(), actual.getContent());
+        assertNull(actualNull);
+    }
 }

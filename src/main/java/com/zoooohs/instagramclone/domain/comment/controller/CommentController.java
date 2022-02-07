@@ -28,4 +28,9 @@ public class CommentController {
         return commentService.getPostCommentList(postId, pageModel);
     }
 
+    @PatchMapping("/comment/{commentId}")
+    public CommentDto updateComment(@PathVariable Long commentId, @RequestBody CommentDto commentDto, @AuthenticationPrincipal UserDto userDto) {
+        return commentService.updateComment(commentId, commentDto, userDto);
+    }
+
 }

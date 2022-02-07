@@ -13,7 +13,7 @@ import javax.persistence.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@Entity
+@Entity(name = "comment")
 @NamedEntityGraphs({
         @NamedEntityGraph(name = "comment-user", attributeNodes = {
                 @NamedAttributeNode(value = "user"),

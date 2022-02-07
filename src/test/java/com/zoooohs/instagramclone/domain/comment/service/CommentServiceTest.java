@@ -40,6 +40,7 @@ public class CommentServiceTest {
     private CommentDto commentDto;
     private PostEntity post;
     private PageModel pageModel;
+    private CommentEntity commentEntity;
 
     @BeforeEach
     public void setUp() {
@@ -51,20 +52,19 @@ public class CommentServiceTest {
         post = PostEntity.builder().id(postId).build();
 
         pageModel = PageModel.builder().index(0).size(20).build();
+
+        commentEntity = new CommentEntity();
+        commentEntity.setId(1L);
+        commentEntity.setContent(commentDto.getContent());
     }
 
 
     @DisplayName("commentBody, user, postId 입력받아 comment id 포함된 comment Body 반환, db에 저장, postId가 없는 post일 경우 404, POST_NOT_FOUND")
     @Test
     public void createTest() {
-        CommentEntity comment = new CommentEntity();
-        comment.setId(1L);
-        comment.setContent(commentDto.getContent());
-
-
         given(this.postRepository.findById(eq(postId))).willReturn(Optional.ofNullable(post));
         given(this.postRepository.findById(eq(2L))).willReturn(Optional.ofNullable(null));
-        given(this.commentRepository.save(any(CommentEntity.class))).willReturn(comment);
+        given(this.commentRepository.save(any(CommentEntity.class))).willReturn(commentEntity);
 
         CommentDto actual = commentService.create(commentDto, postId, userDto);
 
@@ -106,6 +106,37 @@ public class CommentServiceTest {
             fail();
         } catch (ZooooException e) {
             assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @DisplayName("comment service  updateComment(postId, commentDto, userDto) 받아서 db에 comment content 변경하여 comment dto return 하도록 테스트.")
+    @Test
+    public void updateCommentTest() {
+        String newContent = "aaa";
+        commentDto.setContent(newContent);
+        CommentEntity newComment = new CommentEntity();
+        newComment.setId(commentEntity.getId());
+        newComment.setContent(newContent);
+        given(commentRepository.findByIdAndUserId(eq(commentEntity.getId()), eq(userDto.getId()))).willReturn(commentEntity);
+        given(commentRepository.save(newComment)).willReturn(newComment);
+
+        CommentDto actual = commentService.updateComment(commentEntity.getId(), commentDto, userDto);
+
+        assertEquals(newContent, actual.getContent());
+        assertEquals(commentEntity.getId(), actual.getId());
+    }
+
+    @DisplayName("comment service  updateComment(postId, commentDto, userDto) 받아서 db에 comment 없으면 COMMENT_NOT_FOUND 반환 하도록 테스트")
+    @Test
+    public void updateCommentFailure404Test() {
+        given(commentRepository.findByIdAndUserId(eq(commentEntity.getId()), eq(userDto.getId()))).willReturn(null);
+        try {
+            commentService.updateComment(commentEntity.getId(), commentDto, userDto);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.COMMENT_NOT_FOUND, e.getErrorCode());
         } catch (Exception e) {
             fail();
         }
