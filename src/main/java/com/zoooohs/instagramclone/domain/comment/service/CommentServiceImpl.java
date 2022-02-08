@@ -56,4 +56,14 @@ public class CommentServiceImpl implements CommentService {
         comment = this.commentRepository.save(comment);
         return this.modelMapper.map(comment, CommentDto.class);
     }
+
+    @Override
+    public Long deleteById(Long commentId, UserDto userDto) {
+        CommentEntity comment = this.commentRepository.findByIdAndUserId(commentId, userDto.getId());
+        if (comment == null) {
+            throw new ZooooException(ErrorCode.COMMENT_NOT_FOUND);
+        }
+        this.commentRepository.delete(comment);
+        return commentId;
+    }
 }

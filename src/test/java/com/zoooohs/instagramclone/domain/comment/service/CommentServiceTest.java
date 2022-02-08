@@ -120,7 +120,7 @@ public class CommentServiceTest {
         newComment.setId(commentEntity.getId());
         newComment.setContent(newContent);
         given(commentRepository.findByIdAndUserId(eq(commentEntity.getId()), eq(userDto.getId()))).willReturn(commentEntity);
-        given(commentRepository.save(newComment)).willReturn(newComment);
+        given(commentRepository.save(any(CommentEntity.class))).willReturn(newComment);
 
         CommentDto actual = commentService.updateComment(commentEntity.getId(), commentDto, userDto);
 
@@ -141,5 +141,31 @@ public class CommentServiceTest {
             fail();
         }
     }
+
+    @DisplayName("comment Id, userDto 입력 받아 comment 지우는 서비스 메소드 테스트")
+    @Test
+    public void deleteByIdTest() {
+        Long commentId = 1L;
+        given(commentRepository.findByIdAndUserId(eq(1L), eq(userDto.getId()))).willReturn(commentEntity);
+        Long actual = commentService.deleteById(commentId, userDto);
+
+        assertEquals(commentId, actual);
+    }
+
+    @DisplayName("comment Id, userDto 입력 받아 comment 지우는 서비스 메소드에서 comment 없으면 COMMENT_NOT_FOUND 예외 쓰로우 테스트")
+    @Test
+    public void deleteByIdFailure404Test() {
+        Long commentId = 1L;
+        given(commentRepository.findByIdAndUserId(eq(1L), eq(userDto.getId()))).willReturn(null);
+        try {
+            commentService.deleteById(commentId, userDto);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.COMMENT_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
 
 }

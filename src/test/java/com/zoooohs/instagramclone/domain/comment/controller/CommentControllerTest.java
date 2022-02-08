@@ -23,6 +23,7 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import java.util.ArrayList;
 
@@ -129,6 +130,24 @@ public class CommentControllerTest {
 
         mockMvc.perform(patch(url404).contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsBytes(commentDto)))
+                .andExpect(status().isNotFound());
+    }
+
+    @DisplayName("DELETE /comment/{commentId}, jwt 입력 받아, 댓글 삭제후 댓글 id 담긴 json 반환. 없는 댓글의 경우 404 반환")
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L)
+    public void deleteByIdTest() throws Exception {
+        String url = String.format("/comment/%d", 1L);
+        String url404 = String.format("/comment/%d", 2L);
+
+        given(this.commentService.deleteById(eq(1L), any(UserDto.class))).willReturn(1L);
+        given(this.commentService.deleteById(eq(2L), any(UserDto.class))).willThrow(new ZooooException(ErrorCode.COMMENT_NOT_FOUND));
+
+        mockMvc.perform(delete(url))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("1"));
+
+        mockMvc.perform(delete(url404))
                 .andExpect(status().isNotFound());
     }
 }

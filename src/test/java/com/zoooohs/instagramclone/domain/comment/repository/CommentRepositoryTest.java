@@ -111,4 +111,20 @@ public class CommentRepositoryTest {
         assertEquals(comment.getContent(), actual.getContent());
         assertNull(actualNull);
     }
+
+    @DisplayName("comment Repository delete(commentEntity)로 댓글 삭제 테스트")
+    @Test
+    public void deleteTest() {
+        CommentEntity comment = new CommentEntity();
+        comment.setContent("content22");
+        comment.setUser(user);
+        comment.setPost(post);
+        comment = this.commentRepository.save(comment);
+
+        Long commentId = comment.getId();
+
+        this.commentRepository.delete(comment);
+
+        assertThrows(Exception.class, () -> commentRepository.findById(commentId).orElseThrow(() -> new Exception()));
+    }
 }

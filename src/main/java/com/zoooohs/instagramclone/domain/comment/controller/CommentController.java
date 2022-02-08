@@ -33,4 +33,10 @@ public class CommentController {
         return commentService.updateComment(commentId, commentDto, userDto);
     }
 
+    @DeleteMapping("/comment/{commentId}")
+    public Long deleteById(@PathVariable Long commentId, @AuthenticationPrincipal UserDto userDto) {
+        Long re =  commentService.deleteById(commentId, userDto);
+        return re;
+    }
+
 }
