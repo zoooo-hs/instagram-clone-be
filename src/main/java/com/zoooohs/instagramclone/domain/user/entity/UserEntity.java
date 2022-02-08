@@ -46,7 +46,8 @@ public class UserEntity extends BaseEntity implements UserDetails {
     private PhotoEntity profilePhoto;
 
     @Builder
-    public UserEntity(String email, String password, String name) {
+    public UserEntity(Long id, String email, String password, String name) {
+        this.id = id;
         this.email = email;
         this.password = password;
         this.name = name;

@@ -12,6 +12,7 @@ public enum ErrorCode {
     LOGIN_WRONG_INFO(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),
     USER_NOT_FOUND(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."),
     POST_NOT_FOUND(HttpStatus.NOT_FOUND, "게시글을 찾을 수 없습니다."),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글을 찾을 수 없습니다."),
 
     // 409 CONFLICT
     SIGN_UP_DUPLICATED_EMAIL_OR_NAME(HttpStatus.CONFLICT, "중복 된 email 혹은 name 입니다."),

@@ -45,7 +45,8 @@ public class PostEntity extends BaseEntity {
     }
 
     @Builder
-    public PostEntity(String description, UserEntity user) {
+    public PostEntity(Long id, String description, UserEntity user) {
+        this.id = id;
         this.description = description;
         this.user = user;
         this.photos = new ArrayList<>();
