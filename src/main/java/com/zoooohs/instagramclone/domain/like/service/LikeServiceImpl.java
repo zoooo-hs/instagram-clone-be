@@ -32,4 +32,15 @@ public class LikeServiceImpl implements LikeService {
         like = likeRepository.save(like);
         return modelMapper.map(like, LikeDto.class);
     }
+
+    @Override
+    public Long unlike(Long postId, UserDto userDto) {
+        LikeEntity like = likeRepository.findByPostIdAndUserId(postId, userDto.getId());
+        if (like == null) {
+            throw new ZooooException(ErrorCode.LIKE_NOT_FOUND);
+        }
+        long likeId = like.getId();
+        likeRepository.delete(like);
+        return likeId;
+    }
 }

@@ -5,6 +5,7 @@ import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,8 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Date;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 @EnableJpaAuditing
 @DataJpaTest
@@ -37,9 +37,8 @@ public class LikeRepositoryTest {
     private PostEntity post;
     private UserEntity user;
 
-    @DisplayName("like entity save test")
-    @Test
-    public void saveTest() {
+    @BeforeEach
+    public void setUp() {
         passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
         Date now = new Date();
         String testEmail = "tt-sign-up-test-id"+now.getTime()+"@email.com";
@@ -52,12 +51,28 @@ public class LikeRepositoryTest {
         user = this.userRepository.save(user);
         post = PostEntity.builder().description("post1").user(user).build();
         post = this.postRepository.save(post);
+    }
 
+    @DisplayName("like entity save test")
+    @Test
+    public void saveTest() {
         LikeEntity like = LikeEntity.builder().user(user).post(post).build();
         LikeEntity actual = likeRepository.save(like);
 
         assertTrue(actual.getId() != null);
         assertEquals(like.getPost().getId(), actual.getPost().getId());
+    }
+
+    @DisplayName("postId, userId로  like entity 찾는 findByPostIdAndUserId 테스트")
+    @Test
+    public void findByPostIdAndUserIdTest() {
+        LikeEntity like = LikeEntity.builder().user(user).post(post).build();
+        like = likeRepository.save(like);
+
+        LikeEntity actual = likeRepository.findByPostIdAndUserId(post.getId(), user.getId());
+
+        assertNotNull(actual);
+        assertEquals(like.getId(), actual.getId());
     }
 
 
