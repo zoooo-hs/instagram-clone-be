@@ -1,8 +1,8 @@
 package com.zoooohs.instagramclone.domain.like.service;
 
-import com.zoooohs.instagramclone.domain.like.dto.LikeDto;
-import com.zoooohs.instagramclone.domain.like.entity.LikeEntity;
-import com.zoooohs.instagramclone.domain.like.repository.LikeRepository;
+import com.zoooohs.instagramclone.domain.like.dto.PostLikeDto;
+import com.zoooohs.instagramclone.domain.like.entity.PostLikeEntity;
+import com.zoooohs.instagramclone.domain.like.repository.PostLikeRepository;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
@@ -29,32 +29,32 @@ public class LikeServiceTest {
     @Mock
     PostRepository postRepository;
     @Mock
-    LikeRepository likeRepository;
+    PostLikeRepository postLikeRepository;
     @Spy
     ModelMapper modelMapper;
     private UserDto userDto;
     private Long postId;
-    private LikeEntity like;
-    private PostEntity post;
+    private PostLikeEntity postLikeEntity;
+    private PostEntity postEntity;
 
     @BeforeEach
     public void setUp() {
-        likeService = new LikeServiceImpl(postRepository, likeRepository, modelMapper);
+        likeService = new LikeServiceImpl(postRepository, postLikeRepository, modelMapper);
         userDto = UserDto.builder().id(1L).build();
         postId = 1L;
-        post = PostEntity.builder().id(postId).build();
-        like = LikeEntity.builder().user(UserEntity.builder().id(1L).build()).post(post).build();
-        like.setId(1L);
+        postEntity = PostEntity.builder().id(postId).build();
+        postLikeEntity = PostLikeEntity.builder().user(UserEntity.builder().id(1L).build()).post(postEntity).build();
+        postLikeEntity.setId(1L);
 
     }
 
     @DisplayName("postId, userDto 입력 받아 like Entity 저장하고 like dto 반환하는 서비스")
     @Test
     public void likeTest() {
-        given(postRepository.findByIdAndUserId(eq(postId), eq(userDto.getId()))).willReturn(post);
-        given(likeRepository.save(any(LikeEntity.class))).willReturn(like);
+        given(postRepository.findByIdAndUserId(eq(postId), eq(userDto.getId()))).willReturn(postEntity);
+        given(postLikeRepository.save(any(PostLikeEntity.class))).willReturn(postLikeEntity);
 
-        LikeDto actual = likeService.like(postId, userDto);
+        PostLikeDto actual = likeService.likePost(postId, userDto);
 
         assertNotNull(actual.getId());
         assertEquals(postId, actual.getPost().getId());
@@ -64,7 +64,7 @@ public class LikeServiceTest {
     @Test
     public void likeFailure404Test() {
         try {
-            likeService.like(2L, userDto);
+            likeService.likePost(2L, userDto);
             fail();
         } catch (ZooooException e) {
             assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
@@ -77,9 +77,9 @@ public class LikeServiceTest {
     @DisplayName("postid, userdto 받아 like entity 삭제 후 삭제된 id 반환")
     @Test
     public void unlikeTest() {
-        given(likeRepository.findByPostIdAndUserId(eq(postId), eq(userDto.getId()))).willReturn(like);
+        given(postLikeRepository.findByPostIdAndUserId(eq(postId), eq(userDto.getId()))).willReturn(postLikeEntity);
 
-        Long actual = likeService.unlike(postId, userDto);
+        Long actual = likeService.unlikePost(postId, userDto);
 
         assertEquals(1L, actual);
     }
@@ -88,7 +88,7 @@ public class LikeServiceTest {
     @Test
     public void unlikeFailure404Test() {
         try {
-            likeService.unlike(2L, userDto);
+            likeService.unlikePost(2L, userDto);
         } catch (ZooooException e) {
             assertEquals(ErrorCode.LIKE_NOT_FOUND, e.getErrorCode());
         } catch (Exception e) {

@@ -1,6 +1,6 @@
 package com.zoooohs.instagramclone.domain.like.controller;
 
-import com.zoooohs.instagramclone.domain.like.dto.LikeDto;
+import com.zoooohs.instagramclone.domain.like.dto.PostLikeDto;
 import com.zoooohs.instagramclone.domain.like.service.LikeService;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import lombok.RequiredArgsConstructor;
@@ -17,12 +17,12 @@ public class LikeController {
     private final LikeService likeService;
 
     @PostMapping("/post/{postId}/like")
-    public LikeDto like(@PathVariable Long postId, @AuthenticationPrincipal UserDto userDto) {
-        return likeService.like(postId, userDto);
+    public PostLikeDto likePost(@PathVariable Long postId, @AuthenticationPrincipal UserDto userDto) {
+        return likeService.likePost(postId, userDto);
     }
 
     @DeleteMapping("/post/{postId}/like")
     public Long unlike(@PathVariable Long postId, @AuthenticationPrincipal UserDto userDto) {
-        return likeService.unlike(postId, userDto);
+        return likeService.unlikePost(postId, userDto);
     }
 }

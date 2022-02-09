@@ -1,6 +1,6 @@
 package com.zoooohs.instagramclone.domain.like.repository;
 
-import com.zoooohs.instagramclone.domain.like.entity.LikeEntity;
+import com.zoooohs.instagramclone.domain.like.entity.PostLikeEntity;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
@@ -22,10 +22,10 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnableJpaAuditing
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-public class LikeRepositoryTest {
+public class PostLikeRepositoryTest {
 
     @Autowired
-    LikeRepository likeRepository;
+    PostLikeRepository likeRepository;
 
     @Autowired
     UserRepository userRepository;
@@ -56,8 +56,8 @@ public class LikeRepositoryTest {
     @DisplayName("like entity save test")
     @Test
     public void saveTest() {
-        LikeEntity like = LikeEntity.builder().user(user).post(post).build();
-        LikeEntity actual = likeRepository.save(like);
+        PostLikeEntity like = PostLikeEntity.builder().user(user).post(post).build();
+        PostLikeEntity actual = likeRepository.save(like);
 
         assertTrue(actual.getId() != null);
         assertEquals(like.getPost().getId(), actual.getPost().getId());
@@ -66,10 +66,10 @@ public class LikeRepositoryTest {
     @DisplayName("postId, userId로  like entity 찾는 findByPostIdAndUserId 테스트")
     @Test
     public void findByPostIdAndUserIdTest() {
-        LikeEntity like = LikeEntity.builder().user(user).post(post).build();
+        PostLikeEntity like = PostLikeEntity.builder().user(user).post(post).build();
         like = likeRepository.save(like);
 
-        LikeEntity actual = likeRepository.findByPostIdAndUserId(post.getId(), user.getId());
+        PostLikeEntity actual = likeRepository.findByPostIdAndUserId(post.getId(), user.getId());
 
         assertNotNull(actual);
         assertEquals(like.getId(), actual.getId());

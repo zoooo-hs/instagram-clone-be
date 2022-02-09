@@ -3,7 +3,7 @@ package com.zoooohs.instagramclone.domain.like.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zoooohs.instagramclone.configuration.SecurityConfiguration;
 import com.zoooohs.instagramclone.configure.WithAuthUser;
-import com.zoooohs.instagramclone.domain.like.dto.LikeDto;
+import com.zoooohs.instagramclone.domain.like.dto.PostLikeDto;
 import com.zoooohs.instagramclone.domain.like.service.LikeService;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
@@ -59,12 +59,12 @@ public class LikeControllerTest {
     @DisplayName("POST /post/{postId}/like 입력받아 Like Json 반환, ost /post/{postId}/like 입력 받아 없는 postId 의 경우 404 반환")
     @Test
     @WithAuthUser(email = "user1@test.test", id = 1L)
-    public void likeTest() throws Exception {
+    public void likePostTest() throws Exception {
         String url = String.format("/post/%d/like", 1L);
         String url404 = String.format("/post/%d/like", 2L);
 
-        given(likeService.like(eq(1L), any(UserDto.class))).willReturn(LikeDto.builder().id(1L).post(PostDto.Post.builder().id(1L).build()).build());
-        given(likeService.like(eq(2L), any(UserDto.class))).willThrow(new ZooooException(ErrorCode.POST_NOT_FOUND));
+        given(likeService.likePost(eq(1L), any(UserDto.class))).willReturn(PostLikeDto.builder().id(1L).post(PostDto.Post.builder().id(1L).build()).build());
+        given(likeService.likePost(eq(2L), any(UserDto.class))).willThrow(new ZooooException(ErrorCode.POST_NOT_FOUND));
 
         mockMvc.perform(post(url))
                 .andExpect(status().isOk())
@@ -77,12 +77,12 @@ public class LikeControllerTest {
     @DisplayName("DELETE /post/{postId}/like 입력 받아  id 담긴 json 반환")
     @Test
     @WithAuthUser(email = "user1@test.test", id = 1L)
-    public void unlikeTest() throws Exception {
+    public void unlikePostTest() throws Exception {
         String url = String.format("/post/%d/like", 1L);
         String url404 = String.format("/post/%d/like", 2L);
 
-        given(likeService.unlike(eq(1L), any(UserDto.class))).willReturn(1L);
-        given(likeService.unlike(eq(2L), any(UserDto.class))).willThrow(new ZooooException(ErrorCode.LIKE_NOT_FOUND));
+        given(likeService.unlikePost(eq(1L), any(UserDto.class))).willReturn(1L);
+        given(likeService.unlikePost(eq(2L), any(UserDto.class))).willThrow(new ZooooException(ErrorCode.LIKE_NOT_FOUND));
 
         mockMvc.perform(delete(url))
                 .andExpect(status().isOk())

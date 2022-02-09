@@ -7,12 +7,12 @@ import lombok.NoArgsConstructor;
 
 @Data
 @NoArgsConstructor
-public class LikeDto {
+public class PostLikeDto {
     private Long id;
     private PostDto.Post post;
 
     @Builder
-    public LikeDto(Long id, PostDto.Post post) {
+    public PostLikeDto(Long id, PostDto.Post post) {
         this.id = id;
         this.post = post;
     }

@@ -13,9 +13,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 
 @Data
-@Entity(name = "likes") //like keyword가 겹쳐서 복수형으로
+@Entity(name = "post_like")
 @NoArgsConstructor
-public class LikeEntity extends BaseEntity {
+public class PostLikeEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private PostEntity post;
@@ -25,7 +25,7 @@ public class LikeEntity extends BaseEntity {
     private UserEntity user;
 
     @Builder
-    public LikeEntity(PostEntity post, UserEntity user) {
+    public PostLikeEntity(PostEntity post, UserEntity user) {
         this.post = post;
         this.user = user;
     }
