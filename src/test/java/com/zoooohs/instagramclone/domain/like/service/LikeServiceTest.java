@@ -21,7 +21,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.modelmapper.ModelMapper;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Optional;
 
@@ -70,9 +73,10 @@ public class LikeServiceTest {
         commentLikeEntity.setId(1L);
     }
 
-    @DisplayName("postId, userDto 입력 받아 like Entity 저장하고 like dto 반환하는 서비스")
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    @DisplayName("postId, userDto 입력 받아 like Entity 저장하고 like dto 반환하는 서비스 + postid, userId로 이미 like가 존재한다면 존재하는 like dto를 반환, 없을 경우에만 save 후 반환")
     @Test
-    public void likeTest() {
+    public void likePostTest() {
         given(postRepository.findByIdAndUserId(eq(postId), eq(userDto.getId()))).willReturn(postEntity);
         given(postLikeRepository.save(any(PostLikeEntity.class))).willReturn(postLikeEntity);
 
@@ -80,6 +84,14 @@ public class LikeServiceTest {
 
         assertNotNull(actual.getId());
         assertEquals(postId, actual.getPost().getId());
+
+        // unique key 테스트
+        given(postLikeRepository.findByPostIdAndUserId(eq(postId), eq(userDto.getId()))).willReturn(postLikeEntity);
+        given(postLikeRepository.save(any(PostLikeEntity.class))).willThrow(new DataIntegrityViolationException("")); // 구현 이후엔 의미없는 stubbing 그러나 테스트를 처음 만들 당시 필요했음
+
+        PostLikeDto actual2 = likeService.likePost(postId, userDto);
+
+        assertEquals(actual.getId(), actual2.getId());
     }
 
     @DisplayName("postId가 없을 경우 post not found 예외 쓰로우 테스트")
@@ -118,7 +130,8 @@ public class LikeServiceTest {
         }
     }
 
-    @DisplayName("commentId, userDto 입력 받아 like entity save후 like dto 반환")
+    @MockitoSettings(strictness = Strictness.LENIENT)
+    @DisplayName("commentId, userDto 입력 받아 like entity save후 like dto 반환 + commentId, userId로 이미 like가 존재한다면 존재하는 like dto를 반환, 없을 경우에만 save 후 반환")
     @Test
     public void likeCommentTest() {
         given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(commentEntity));
@@ -128,6 +141,11 @@ public class LikeServiceTest {
 
         assertNotNull(actual);
         assertEquals(commentId, actual.getComment().getId());
+
+        given(commentLikeRepository.save(any(CommentLikeEntity.class))).willThrow(new DataIntegrityViolationException(""));
+
+        CommentLikeDto actual2 = likeService.likeComment(commentId, userDto);
+        assertEquals(actual.getId(), actual2.getId());
     }
 
     @DisplayName("commentId 만족하는 comment entity없을 경우 COMMENT_NOT_FOUND throw")

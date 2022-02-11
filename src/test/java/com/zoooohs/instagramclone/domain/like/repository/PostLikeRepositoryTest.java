@@ -11,10 +11,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.sql.SQLException;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,6 +65,24 @@ public class PostLikeRepositoryTest {
 
         assertTrue(actual.getId() != null);
         assertEquals(like.getPost().getId(), actual.getPost().getId());
+    }
+
+    @DisplayName("postid, userid 쌍이 같은 postLike row가 insert되어선 안된다")
+    @Test
+    public void postAndUserUniqueTest() {
+        PostLikeEntity like = PostLikeEntity.builder().user(user).post(post).build();
+        likeRepository.save(like);
+        PostLikeEntity like2 = PostLikeEntity.builder().user(user).post(post).build();
+
+        try {
+            likeRepository.save(like2);
+            fail();
+        } catch (DataIntegrityViolationException e) {
+            assertTrue(true);
+        } catch (Exception e) {
+            fail();
+        }
+
     }
 
     @DisplayName("postId, userId로  like entity 찾는 findByPostIdAndUserId 테스트")

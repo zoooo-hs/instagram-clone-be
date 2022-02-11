@@ -34,8 +34,11 @@ public class LikeServiceImpl implements LikeService {
         if (post == null) {
             throw new ZooooException(ErrorCode.POST_NOT_FOUND);
         }
-        PostLikeEntity like = PostLikeEntity.builder().post(post).user(UserEntity.builder().id(userDto.getId()).build()).build();
-        like = postLikeRepository.save(like);
+        PostLikeEntity like = postLikeRepository.findByPostIdAndUserId(postId, userDto.getId());
+        if (like == null) {
+            like = PostLikeEntity.builder().post(post).user(UserEntity.builder().id(userDto.getId()).build()).build();
+            like = postLikeRepository.save(like);
+        }
         return modelMapper.map(like, PostLikeDto.class);
     }
 
@@ -53,8 +56,11 @@ public class LikeServiceImpl implements LikeService {
     @Override
     public CommentLikeDto likeComment(Long commentId, UserDto userDto) {
         CommentEntity comment = commentRepository.findById(commentId).orElseThrow(() -> new ZooooException(ErrorCode.COMMENT_NOT_FOUND));
-        CommentLikeEntity commentLike = CommentLikeEntity.builder().comment(comment).user(UserEntity.builder().id(userDto.getId()).build()).build();
-        commentLike = commentLikeRepository.save(commentLike);
+        CommentLikeEntity commentLike = commentLikeRepository.findByCommentIdAndUserId(commentId, userDto.getId());
+        if (commentLike == null) {
+            commentLike = CommentLikeEntity.builder().comment(comment).user(UserEntity.builder().id(userDto.getId()).build()).build();
+            commentLike = commentLikeRepository.save(commentLike);
+        }
         return modelMapper.map(commentLike, CommentLikeDto.class);
     }
 

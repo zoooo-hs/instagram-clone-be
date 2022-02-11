@@ -13,14 +13,15 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Date;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @EnableJpaAuditing
 @DataJpaTest
@@ -71,6 +72,23 @@ public class CommentLikeRepositoryTest {
 
         assertTrue(actual.getId() != null);
         assertEquals(like.getComment().getId(), actual.getComment().getId());
+    }
+
+    @DisplayName("commentId, userid 쌍이 같은 commentLike row가 insert되어선 안된다")
+    @Test
+    public void commentAndUserUniqueTest() {
+        CommentLikeEntity like = CommentLikeEntity.builder().user(user).comment(comment).build();
+        likeRepository.save(like);
+        CommentLikeEntity like2 = CommentLikeEntity.builder().user(user).comment(comment).build();
+
+        try {
+            likeRepository.save(like2);
+            fail();
+        } catch (DataIntegrityViolationException e) {
+            assertTrue(true);
+        } catch (Exception e) {
+            fail();
+        }
     }
 
     @DisplayName("commentId, userId 입력 받아 commnet like entity 찾기")

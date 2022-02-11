@@ -7,14 +7,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.Entity;
-import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.ManyToOne;
+import javax.persistence.*;
 
 @Data
-@Entity(name = "comment_like")
 @NoArgsConstructor
+@Entity(name = "comment_like")
+@Table(uniqueConstraints = {
+        @UniqueConstraint(name = "u_comment_user_comment_like", columnNames = {"comment_id", "user_id"}),
+})
 public class CommentLikeEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "comment_id", nullable = false)
