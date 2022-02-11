@@ -3,7 +3,6 @@ package com.zoooohs.instagramclone.domain.like.repository;
 import com.zoooohs.instagramclone.domain.comment.entity.CommentEntity;
 import com.zoooohs.instagramclone.domain.comment.repository.CommentRepository;
 import com.zoooohs.instagramclone.domain.like.entity.CommentLikeEntity;
-import com.zoooohs.instagramclone.domain.like.entity.PostLikeEntity;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
@@ -20,7 +19,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Date;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnableJpaAuditing
 @DataJpaTest
@@ -71,6 +71,17 @@ public class CommentLikeRepositoryTest {
 
         assertTrue(actual.getId() != null);
         assertEquals(like.getComment().getId(), actual.getComment().getId());
+    }
+
+    @DisplayName("commentId, userId 입력 받아 commnet like entity 찾기")
+    @Test
+    public void findByCommentIdAndUserIdTest() {
+        CommentLikeEntity like = CommentLikeEntity.builder().user(user).comment(comment).build();
+        like = likeRepository.save(like);
+
+        CommentLikeEntity actual = likeRepository.findByCommentIdAndUserId(comment.getId(), user.getId());
+
+        assertEquals(like.getId(), actual.getId());
     }
 
 }

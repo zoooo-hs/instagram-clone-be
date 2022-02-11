@@ -31,4 +31,9 @@ public class LikeController {
     public Long unlike(@PathVariable Long postId, @AuthenticationPrincipal UserDto userDto) {
         return likeService.unlikePost(postId, userDto);
     }
+
+    @DeleteMapping("/comment/{commentId}/like")
+    public Long unlikeComment(@PathVariable Long commentId, @AuthenticationPrincipal UserDto userDto) {
+        return likeService.unlikeComment(commentId, userDto);
+    }
 }

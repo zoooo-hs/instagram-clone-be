@@ -11,4 +11,6 @@ public interface LikeService {
     Long unlikePost(Long postId, UserDto userDto);
 
     CommentLikeDto likeComment(Long commentId, UserDto userDto);
+
+    Long unlikeComment(Long commentId, UserDto userDto);
 }

@@ -18,8 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 @Service
 @RequiredArgsConstructor
 public class LikeServiceImpl implements LikeService {
@@ -58,5 +56,16 @@ public class LikeServiceImpl implements LikeService {
         CommentLikeEntity commentLike = CommentLikeEntity.builder().comment(comment).user(UserEntity.builder().id(userDto.getId()).build()).build();
         commentLike = commentLikeRepository.save(commentLike);
         return modelMapper.map(commentLike, CommentLikeDto.class);
+    }
+
+    @Override
+    public Long unlikeComment(Long commentId, UserDto userDto) {
+        CommentLikeEntity commentLike = commentLikeRepository.findByCommentIdAndUserId(commentId, userDto.getId());
+        if (commentLike == null) {
+            throw new ZooooException(ErrorCode.LIKE_NOT_FOUND);
+        }
+        Long likeId = commentLike.getId();
+        commentLikeRepository.delete(commentLike);
+        return likeId;
     }
 }

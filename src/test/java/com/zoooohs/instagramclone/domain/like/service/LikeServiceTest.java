@@ -144,4 +144,29 @@ public class LikeServiceTest {
             fail();
         }
     }
+
+    @DisplayName("commentId, userDto 입력 받아 commentId, userDto 일치하는 comment like 삭제 후 like id 반환.")
+    @Test
+    public void unlikeCommentTest() {
+        given(commentLikeRepository.findByCommentIdAndUserId(eq(commentId), eq(userDto.getId()))).willReturn(commentLikeEntity);
+
+        Long actual = likeService.unlikeComment(commentId, userDto);
+
+        assertEquals(commentLikeEntity.getId(), actual);
+    }
+
+    @DisplayName("commentId, userDto 입력 받아 commentId, userDto 일치하는 commetn like 없을 시 like not found throw")
+    @Test
+    public void unlikeCommentFailure404Test() {
+        given(commentLikeRepository.findByCommentIdAndUserId(eq(commentId), eq(userDto.getId()))).willReturn(null);
+
+        try {
+            likeService.unlikeComment(commentId, userDto);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.LIKE_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+    }
 }

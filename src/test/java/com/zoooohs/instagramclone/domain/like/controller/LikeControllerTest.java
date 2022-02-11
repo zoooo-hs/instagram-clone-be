@@ -112,4 +112,22 @@ public class LikeControllerTest {
                 .andExpect(status().isNotFound());
     }
 
+    @DisplayName("DELETE /comment/{commentId}/like, jwt 입력 받아 like id  반환, comment 혹은 like가 없는 경우 404")
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L)
+    public void unlikeCommentTest() throws Exception {
+        String url = String.format("/comment/%d/like", 1L);
+        String url404 = String.format("/comment/%d/like", 2L);
+
+        given(likeService.unlikeComment(eq(1L), any(UserDto.class))).willReturn(1L);
+        given(likeService.unlikeComment(eq(2L), any(UserDto.class))).willThrow(new ZooooException(ErrorCode.LIKE_NOT_FOUND));
+
+        mockMvc.perform(delete(url))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.content().string("1"));
+
+        mockMvc.perform(delete(url404))
+                .andExpect(status().isNotFound());
+    }
+
 }
