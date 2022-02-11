@@ -1,7 +1,12 @@
 package com.zoooohs.instagramclone.domain.like.service;
 
+import com.zoooohs.instagramclone.domain.comment.entity.CommentEntity;
+import com.zoooohs.instagramclone.domain.comment.repository.CommentRepository;
+import com.zoooohs.instagramclone.domain.like.dto.CommentLikeDto;
 import com.zoooohs.instagramclone.domain.like.dto.PostLikeDto;
+import com.zoooohs.instagramclone.domain.like.entity.CommentLikeEntity;
 import com.zoooohs.instagramclone.domain.like.entity.PostLikeEntity;
+import com.zoooohs.instagramclone.domain.like.repository.CommentLikeRepository;
 import com.zoooohs.instagramclone.domain.like.repository.PostLikeRepository;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
@@ -13,12 +18,16 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class LikeServiceImpl implements LikeService {
 
     private final PostRepository postRepository;
     private final PostLikeRepository postLikeRepository;
+    private final CommentRepository commentRepository;
+    private final CommentLikeRepository commentLikeRepository;
     private final ModelMapper modelMapper;
 
     @Override
@@ -41,5 +50,13 @@ public class LikeServiceImpl implements LikeService {
         long likeId = like.getId();
         postLikeRepository.delete(like);
         return likeId;
+    }
+
+    @Override
+    public CommentLikeDto likeComment(Long commentId, UserDto userDto) {
+        CommentEntity comment = commentRepository.findById(commentId).orElseThrow(() -> new ZooooException(ErrorCode.COMMENT_NOT_FOUND));
+        CommentLikeEntity commentLike = CommentLikeEntity.builder().comment(comment).user(UserEntity.builder().id(userDto.getId()).build()).build();
+        commentLike = commentLikeRepository.save(commentLike);
+        return modelMapper.map(commentLike, CommentLikeDto.class);
     }
 }

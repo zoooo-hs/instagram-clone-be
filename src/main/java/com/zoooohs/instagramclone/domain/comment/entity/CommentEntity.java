@@ -3,6 +3,7 @@ package com.zoooohs.instagramclone.domain.comment.entity;
 import com.zoooohs.instagramclone.domain.common.entity.BaseEntity;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -30,4 +31,11 @@ public class CommentEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
+
+    @Builder
+    public CommentEntity(String content, PostEntity post, UserEntity user) {
+        this.content = content;
+        this.post = post;
+        this.user = user;
+    }
 }

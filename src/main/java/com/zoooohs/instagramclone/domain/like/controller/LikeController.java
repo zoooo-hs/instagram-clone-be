@@ -1,5 +1,6 @@
 package com.zoooohs.instagramclone.domain.like.controller;
 
+import com.zoooohs.instagramclone.domain.like.dto.CommentLikeDto;
 import com.zoooohs.instagramclone.domain.like.dto.PostLikeDto;
 import com.zoooohs.instagramclone.domain.like.service.LikeService;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
@@ -19,6 +20,11 @@ public class LikeController {
     @PostMapping("/post/{postId}/like")
     public PostLikeDto likePost(@PathVariable Long postId, @AuthenticationPrincipal UserDto userDto) {
         return likeService.likePost(postId, userDto);
+    }
+
+    @PostMapping("/comment/{commentId}/like")
+    public CommentLikeDto likeComment(@PathVariable Long commentId, @AuthenticationPrincipal UserDto userDto) {
+        return likeService.likeComment(commentId, userDto);
     }
 
     @DeleteMapping("/post/{postId}/like")

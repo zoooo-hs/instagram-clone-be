@@ -3,6 +3,8 @@ package com.zoooohs.instagramclone.domain.like.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zoooohs.instagramclone.configuration.SecurityConfiguration;
 import com.zoooohs.instagramclone.configure.WithAuthUser;
+import com.zoooohs.instagramclone.domain.comment.dto.CommentDto;
+import com.zoooohs.instagramclone.domain.like.dto.CommentLikeDto;
 import com.zoooohs.instagramclone.domain.like.dto.PostLikeDto;
 import com.zoooohs.instagramclone.domain.like.service.LikeService;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
@@ -89,6 +91,24 @@ public class LikeControllerTest {
                 .andExpect(MockMvcResultMatchers.content().string("1"));
 
         mockMvc.perform(delete(url404))
+                .andExpect(status().isNotFound());
+    }
+
+    @DisplayName("POST /comment/{commentId}/like, jwt 입력 받아, like json 반환")
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L)
+    public void likeCommentTest() throws Exception {
+        String url = String.format("/comment/%d/like", 1L);
+        String url404 = String.format("/comment/%d/like", 2L);
+
+        given(likeService.likeComment(eq(1L), any(UserDto.class))).willReturn(CommentLikeDto.builder().id(1L).comment(CommentDto.builder().content("cont").build()).build());
+        given(likeService.likeComment(eq(2L), any(UserDto.class))).willThrow(new ZooooException(ErrorCode.COMMENT_NOT_FOUND));
+
+        mockMvc.perform(post(url))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", Matchers.instanceOf(Integer.class)));
+
+        mockMvc.perform(post(url404))
                 .andExpect(status().isNotFound());
     }
 

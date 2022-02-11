@@ -1,7 +1,12 @@
 package com.zoooohs.instagramclone.domain.like.service;
 
+import com.zoooohs.instagramclone.domain.comment.entity.CommentEntity;
+import com.zoooohs.instagramclone.domain.comment.repository.CommentRepository;
+import com.zoooohs.instagramclone.domain.like.dto.CommentLikeDto;
 import com.zoooohs.instagramclone.domain.like.dto.PostLikeDto;
+import com.zoooohs.instagramclone.domain.like.entity.CommentLikeEntity;
 import com.zoooohs.instagramclone.domain.like.entity.PostLikeEntity;
+import com.zoooohs.instagramclone.domain.like.repository.CommentLikeRepository;
 import com.zoooohs.instagramclone.domain.like.repository.PostLikeRepository;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
@@ -18,6 +23,8 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
@@ -30,6 +37,10 @@ public class LikeServiceTest {
     PostRepository postRepository;
     @Mock
     PostLikeRepository postLikeRepository;
+    @Mock
+    CommentRepository commentRepository;
+    @Mock
+    CommentLikeRepository commentLikeRepository;
     @Spy
     ModelMapper modelMapper;
     private UserDto userDto;
@@ -37,15 +48,26 @@ public class LikeServiceTest {
     private PostLikeEntity postLikeEntity;
     private PostEntity postEntity;
 
+    private Long commentId;
+    private CommentEntity commentEntity;
+    private CommentLikeEntity commentLikeEntity;
+    private UserEntity userEntity;
+
     @BeforeEach
     public void setUp() {
-        likeService = new LikeServiceImpl(postRepository, postLikeRepository, modelMapper);
+        likeService = new LikeServiceImpl(postRepository, postLikeRepository, commentRepository, commentLikeRepository, modelMapper);
         userDto = UserDto.builder().id(1L).build();
         postId = 1L;
         postEntity = PostEntity.builder().id(postId).build();
-        postLikeEntity = PostLikeEntity.builder().user(UserEntity.builder().id(1L).build()).post(postEntity).build();
+        userEntity = UserEntity.builder().id(1L).build();
+        postLikeEntity = PostLikeEntity.builder().user(userEntity).post(postEntity).build();
         postLikeEntity.setId(1L);
 
+        commentId = 1L;
+        commentEntity = CommentEntity.builder().post(postEntity).build();
+        commentEntity.setId(commentId);
+        commentLikeEntity = CommentLikeEntity.builder().comment(commentEntity).user(userEntity).build();
+        commentLikeEntity.setId(1L);
     }
 
     @DisplayName("postId, userDto 입력 받아 like Entity 저장하고 like dto 반환하는 서비스")
@@ -96,4 +118,30 @@ public class LikeServiceTest {
         }
     }
 
+    @DisplayName("commentId, userDto 입력 받아 like entity save후 like dto 반환")
+    @Test
+    public void likeCommentTest() {
+        given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(commentEntity));
+        given(commentLikeRepository.save(any(CommentLikeEntity.class))).willReturn(commentLikeEntity);
+
+        CommentLikeDto actual = likeService.likeComment(commentId, userDto);
+
+        assertNotNull(actual);
+        assertEquals(commentId, actual.getComment().getId());
+    }
+
+    @DisplayName("commentId 만족하는 comment entity없을 경우 COMMENT_NOT_FOUND throw")
+    @Test
+    public void likeCommentFailure404Test() {
+        given(commentRepository.findById(eq(commentId))).willReturn(Optional.ofNullable(null));
+
+        try {
+            likeService.likeComment(commentId, userDto);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.COMMENT_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+    }
 }
