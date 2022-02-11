@@ -30,10 +30,7 @@ public class LikeServiceImpl implements LikeService {
 
     @Override
     public PostLikeDto likePost(Long postId, UserDto userDto) {
-        PostEntity post = postRepository.findByIdAndUserId(postId, userDto.getId());
-        if (post == null) {
-            throw new ZooooException(ErrorCode.POST_NOT_FOUND);
-        }
+        PostEntity post = postRepository.findById(postId).orElseThrow(() -> new ZooooException(ErrorCode.POST_NOT_FOUND));
         PostLikeEntity like = postLikeRepository.findByPostIdAndUserId(postId, userDto.getId());
         if (like == null) {
             like = PostLikeEntity.builder().post(post).user(UserEntity.builder().id(userDto.getId()).build()).build();

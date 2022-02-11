@@ -77,7 +77,7 @@ public class LikeServiceTest {
     @DisplayName("postId, userDto 입력 받아 like Entity 저장하고 like dto 반환하는 서비스 + postid, userId로 이미 like가 존재한다면 존재하는 like dto를 반환, 없을 경우에만 save 후 반환")
     @Test
     public void likePostTest() {
-        given(postRepository.findByIdAndUserId(eq(postId), eq(userDto.getId()))).willReturn(postEntity);
+        given(postRepository.findById(eq(postId))).willReturn(Optional.ofNullable(postEntity));
         given(postLikeRepository.save(any(PostLikeEntity.class))).willReturn(postLikeEntity);
 
         PostLikeDto actual = likeService.likePost(postId, userDto);
