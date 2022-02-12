@@ -87,11 +87,15 @@ public class LikeServiceTest {
 
         // unique key 테스트
         given(postLikeRepository.findByPostIdAndUserId(eq(postId), eq(userDto.getId()))).willReturn(postLikeEntity);
-        given(postLikeRepository.save(any(PostLikeEntity.class))).willThrow(new DataIntegrityViolationException("")); // 구현 이후엔 의미없는 stubbing 그러나 테스트를 처음 만들 당시 필요했음
 
-        PostLikeDto actual2 = likeService.likePost(postId, userDto);
-
-        assertEquals(actual.getId(), actual2.getId());
+        try {
+            likeService.likePost(postId, userDto);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.ALREADY_LIKED_POST, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
     }
 
     @DisplayName("postId가 없을 경우 post not found 예외 쓰로우 테스트")
@@ -142,10 +146,16 @@ public class LikeServiceTest {
         assertNotNull(actual);
         assertEquals(commentId, actual.getComment().getId());
 
-        given(commentLikeRepository.save(any(CommentLikeEntity.class))).willThrow(new DataIntegrityViolationException(""));
+        given(commentLikeRepository.findByCommentIdAndUserId(eq(commentId), eq(userDto.getId()))).willReturn(commentLikeEntity);
 
-        CommentLikeDto actual2 = likeService.likeComment(commentId, userDto);
-        assertEquals(actual.getId(), actual2.getId());
+        try {
+            likeService.likeComment(commentId, userDto);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.ALREADY_LIKED_COMMENT, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
     }
 
     @DisplayName("commentId 만족하는 comment entity없을 경우 COMMENT_NOT_FOUND throw")

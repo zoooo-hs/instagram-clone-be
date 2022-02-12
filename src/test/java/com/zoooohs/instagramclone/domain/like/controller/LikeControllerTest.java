@@ -72,6 +72,11 @@ public class LikeControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", Matchers.instanceOf(Integer.class)));
 
+        given(likeService.likePost(eq(1L), any(UserDto.class))).willThrow(new ZooooException(ErrorCode.ALREADY_LIKED_POST));
+
+        mockMvc.perform(post(url))
+                .andExpect(status().isConflict());
+
         mockMvc.perform(post(url404))
                 .andExpect(status().isNotFound());
     }
@@ -107,6 +112,11 @@ public class LikeControllerTest {
         mockMvc.perform(post(url))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", Matchers.instanceOf(Integer.class)));
+
+        given(likeService.likeComment(eq(1L), any(UserDto.class))).willThrow(new ZooooException(ErrorCode.ALREADY_LIKED_COMMENT));
+
+        mockMvc.perform(post(url))
+                .andExpect(status().isConflict());
 
         mockMvc.perform(post(url404))
                 .andExpect(status().isNotFound());
