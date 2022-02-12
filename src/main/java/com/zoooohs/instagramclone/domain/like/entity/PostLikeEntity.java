@@ -1,29 +1,21 @@
-package com.zoooohs.instagramclone.domain.comment.entity;
+package com.zoooohs.instagramclone.domain.like.entity;
 
 import com.zoooohs.instagramclone.domain.common.entity.BaseEntity;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import lombok.Builder;
-import lombok.Getter;
+import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import javax.persistence.*;
 
-
-@Getter
-@Setter
+@Data
 @NoArgsConstructor
-@Entity(name = "comment")
-@NamedEntityGraphs({
-        @NamedEntityGraph(name = "comment-user", attributeNodes = {
-                @NamedAttributeNode(value = "user"),
-        }),
+@Entity(name = "post_like")
+@Table(uniqueConstraints = {
+        @UniqueConstraint(name = "u_post_user_post_like", columnNames = {"post_id", "user_id"}),
 })
-public class CommentEntity extends BaseEntity {
-    @Column(name = "content")
-    private String content;
-
+public class PostLikeEntity extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private PostEntity post;
@@ -33,8 +25,7 @@ public class CommentEntity extends BaseEntity {
     private UserEntity user;
 
     @Builder
-    public CommentEntity(String content, PostEntity post, UserEntity user) {
-        this.content = content;
+    public PostLikeEntity(PostEntity post, UserEntity user) {
         this.post = post;
         this.user = user;
     }
