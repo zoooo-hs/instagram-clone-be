@@ -19,6 +19,8 @@ public enum ErrorCode {
     SIGN_UP_DUPLICATED_EMAIL_OR_NAME(HttpStatus.CONFLICT, "중복 된 email 혹은 name 입니다."),
     ALREADY_LIKED_POST(HttpStatus.CONFLICT, "이미 좋아요 한 게시글 입니다."),
     ALREADY_LIKED_COMMENT(HttpStatus.CONFLICT, "이미 좋아요 한 댓글 입니다."),
+    ALREADY_FOLLOWED_USER(HttpStatus.CONFLICT, "이미 팔로우 한 사용자 입니다."),
+    FOLLOWING_SELF(HttpStatus.CONFLICT, "자기 자신은 이미 평생 친구 입니다."),
 
     // 500 INTERNAL
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류"),

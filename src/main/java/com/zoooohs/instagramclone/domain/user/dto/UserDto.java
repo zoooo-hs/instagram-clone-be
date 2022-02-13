@@ -33,11 +33,20 @@ public class UserDto {
     }
 
     @Data
+    @NoArgsConstructor
     public static class Info {
         private Long id;
         private String name;
         private String bio;
         private PhotoDto.Photo profilePhoto;
+
+        @Builder
+        public Info(Long id, String name, String bio, PhotoDto.Photo profilePhoto) {
+            this.id = id;
+            this.name = name;
+            this.bio = bio;
+            this.profilePhoto = profilePhoto;
+        }
     }
 
     public String getUsername() {
