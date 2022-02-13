@@ -13,6 +13,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @EnableJpaAuditing
@@ -64,4 +66,19 @@ public class FollowRepositoryTest {
         assertNotNull(actual);
         assertEquals(followEntity.getId(), actual.getId());
     }
+
+    @DisplayName("follow entity delete test")
+    @Test
+    public void deleteTest() {
+        FollowEntity followEntity = FollowEntity.builder().followUser(followUserEntity).user(userEntity).build();
+        followEntity = followRepository.save(followEntity);
+        followRepository.delete(followEntity);
+
+        FollowEntity actual = followRepository.findByFollowUserIdAndUserId(followUserEntity.getId(), userEntity.getId());
+        Optional<FollowEntity> actual2 = followRepository.findById(followEntity.getId());
+
+        assertNull(actual);
+        assertTrue(actual2.isEmpty());
+    }
+
 }

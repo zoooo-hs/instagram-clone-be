@@ -110,4 +110,42 @@ public class FollowServiceTest {
             fail();
         }
     }
+
+    @DisplayName("followUserId, userId 쌍의 follow 있을때 follow entity 삭제후 id 반환")
+    @Test
+    public void unfollowTest() {
+        given(followRepository.findByFollowUserIdAndUserId(followUserId, userId)).willReturn(followEntity);
+
+        Long actual = followService.unfollow(followUserId, userId);
+
+        assertEquals(followEntity.getId(), actual);
+    }
+
+    @DisplayName("followUserId, userId 쌍의 follow 없을 때 FOLLOW_NOT_FOUND throw")
+    @Test
+    public void unfollowFailure404Test() {
+        given(followRepository.findByFollowUserIdAndUserId(followUserId, userId)).willReturn(null);
+
+        try {
+            followService.unfollow(followUserId, userId);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.FOLLOW_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @DisplayName("followUserId == userId 일 경우 FOLLOWING_SELF throw")
+    @Test
+    public void unfollowFailure409Test() {
+        try {
+            followService.unfollow(userId, userId);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.FOLLOWING_SELF, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+    }
 }
