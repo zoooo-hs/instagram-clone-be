@@ -19,6 +19,8 @@ spring:
     multipart:
       maxFileSize: 10MB
       maxRequestSize: 10MB
+  jackson:
+    property-naming-strategy: SNAKE_CASE
 
 
 logging:
