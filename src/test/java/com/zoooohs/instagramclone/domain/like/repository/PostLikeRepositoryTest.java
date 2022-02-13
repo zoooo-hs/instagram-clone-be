@@ -17,7 +17,10 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
+import javax.persistence.EntityManager;
 import java.sql.SQLException;
 import java.util.Date;
 
@@ -36,6 +39,9 @@ public class PostLikeRepositoryTest {
 
     @Autowired
     PostRepository postRepository;
+
+    @Autowired
+    EntityManager entityManager;
 
     private PasswordEncoder passwordEncoder;
     private PostEntity post;
@@ -97,5 +103,19 @@ public class PostLikeRepositoryTest {
         assertEquals(like.getId(), actual.getId());
     }
 
+    @DisplayName("PostEntity에서 likcCount query를 통해 반환")
+    @Test
+    public void likeCountTest() {
+        PostLikeEntity like = PostLikeEntity.builder().user(user).post(post).build();
+        likeRepository.save(like);
+        entityManager.flush();
+        entityManager.clear();
+
+        PostEntity postEntity = postRepository.findByIdAndUserId(post.getId(), user.getId());
+
+        Long actual = postEntity.getLikeCount();
+
+        assertEquals(1L, actual);
+    }
 
 }

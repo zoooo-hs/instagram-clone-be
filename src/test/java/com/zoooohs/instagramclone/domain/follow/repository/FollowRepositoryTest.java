@@ -13,6 +13,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -79,6 +80,18 @@ public class FollowRepositoryTest {
 
         assertNull(actual);
         assertTrue(actual2.isEmpty());
+    }
+
+    @DisplayName("userId 로 follower entity list select 하는 follow repository")
+    @Test
+    public void findByUserIdTest() {
+        FollowEntity followEntity = FollowEntity.builder().followUser(followUserEntity).user(userEntity).build();
+        followEntity = followRepository.save(followEntity);
+
+        List<FollowEntity> actual = followRepository.findByUserId(userEntity.getId());
+
+        assertEquals(1, actual.size());
+        assertEquals(followEntity.getId(), actual.get(0).getId());
     }
 
 }

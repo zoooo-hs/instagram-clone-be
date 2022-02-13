@@ -4,6 +4,7 @@ package com.zoooohs.instagramclone.domain.post.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zoooohs.instagramclone.configuration.SecurityConfiguration;
 import com.zoooohs.instagramclone.configure.WithAuthUser;
+import com.zoooohs.instagramclone.domain.common.model.PageModel;
 import com.zoooohs.instagramclone.domain.photo.dto.PhotoDto;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.service.PostService;
@@ -31,10 +32,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.Part;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.BDDMockito.*;
 
@@ -76,6 +75,7 @@ public class PostControllerTest {
         post = PostDto.Post.builder()
                 .id(1L)
                 .user(modelMapper.map(user, UserDto.Feed.class))
+                .photos(new ArrayList<>())
                 .description("Hello World!")
                 .build();
     }
@@ -110,23 +110,51 @@ public class PostControllerTest {
     @Test
     @WithAuthUser(email = "user1@test.test", id = 1L)
     public void readTest() throws Exception {
-        String url = String.format("/user/%d/post", user.getId());
+        String url = "/post";
+
+        List<PostDto.Post> postDtos = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            PostDto.Post postDto = PostDto.Post.builder().id((long)i).description("a").isLiked(true).likeCount((long)10).build();
+            postDtos.add(postDto);
+        }
+
+        given(postService.getFeeds(eq(user.getId()), any(PageModel.class))).willReturn(postDtos);
 
         mockMvc.perform(MockMvcRequestBuilders.get(url)
                 .queryParam("index", "0")
                 .queryParam("size", "20"))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].like_count", Matchers.instanceOf(Integer.class)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].liked", Matchers.instanceOf(Boolean.class)))
+        ;
     }
 
     @Test
     @WithAuthUser(email = "user1@test.test", id = 1L)
     public void findAllByUserIdTest() throws Exception {
-        String url = "/post";
+        String url = String.format("/user/%d/post", user.getId());
+
+        int resultSize = 10;
+        List<PostDto.Post> postDtos = new ArrayList<>();
+
+        for (int i = 0; i < resultSize; i++) {
+            PostDto.Post postDto = PostDto.Post.builder().id((long)i).description("a").isLiked(true).likeCount((long)10).user(UserDto.Feed.builder().id(1L).build()).build();
+            postDtos.add(postDto);
+        }
+
+
+
+        given(postService.findByUserId(eq(user.getId()), any(PageModel.class), eq(1L))).willReturn(postDtos);
 
         mockMvc.perform(MockMvcRequestBuilders.get(url)
                 .queryParam("index", "0")
                 .queryParam("size", "20"))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].like_count", Matchers.instanceOf(Integer.class)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].liked", Matchers.instanceOf(Boolean.class)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].user.id", Matchers.is(1)))
+        ;
     }
 
     @Test

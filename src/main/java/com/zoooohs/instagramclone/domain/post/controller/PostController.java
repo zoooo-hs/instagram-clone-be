@@ -5,12 +5,10 @@ import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.service.PostService;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.util.List;
 
@@ -26,13 +24,13 @@ public class PostController {
     }
 
     @GetMapping("/post")
-    public List<PostDto.Post> read(@ModelAttribute PageModel pageModel, @AuthenticationPrincipal UserDto userDto) {
-        return this.postService.findAllExceptSelf(userDto.getId(), pageModel);
+    public List<PostDto.Post> getFeeds(@ModelAttribute PageModel pageModel, @AuthenticationPrincipal UserDto userDto) {
+        return this.postService.getFeeds(userDto.getId(), pageModel);
     }
 
     @GetMapping("/user/{userId}/post")
-    public List<PostDto.Post> findAllByUserId(@PathVariable Long userId, @ModelAttribute PageModel pageModel) {
-        return this.postService.findByUserId(userId, pageModel);
+    public List<PostDto.Post> findAllByUserId(@PathVariable Long userId, @ModelAttribute PageModel pageModel, @AuthenticationPrincipal UserDto userDto) {
+        return this.postService.findByUserId(userId, pageModel, userDto.getId());
     }
 
     @PatchMapping("/post/{postId}/description")

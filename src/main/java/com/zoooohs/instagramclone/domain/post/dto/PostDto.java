@@ -5,6 +5,7 @@ import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
 import javax.validation.constraints.NotNull;
 import java.util.ArrayList;
@@ -19,13 +20,18 @@ public class PostDto {
         private String description;
         private List<PhotoDto.Photo> photos;
         private UserDto.Feed user;
+        private Long likeCount;
+        @Accessors(fluent = true)
+        private Boolean isLiked;
 
         @Builder
-        public Post(Long id, String description, UserDto.Feed user) {
+        public Post(Long id, String description, List<PhotoDto.Photo> photos, UserDto.Feed user, Long likeCount, Boolean isLiked) {
             this.id = id;
             this.description = description;
+            this.photos = photos;
             this.user = user;
-            this.photos = new ArrayList<>();
+            this.likeCount = likeCount;
+            this.isLiked = isLiked;
         }
     }
 }

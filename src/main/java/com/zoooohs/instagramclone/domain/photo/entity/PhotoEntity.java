@@ -6,6 +6,7 @@ import lombok.*;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 
 @Getter
 @Setter
@@ -24,15 +25,5 @@ public class PhotoEntity extends BaseEntity {
     public PhotoEntity(String path, PostEntity post) {
         this.path = path;
         this.post = post;
-    }
-
-    public void setPost(PostEntity post) {
-        this.post = post;
-        if (post.getPhotos() == null) {
-            post.setPhotos(new ArrayList<>());
-        }
-        if (!post.getPhotos().contains(this)) {
-            post.getPhotos().add(this);
-        }
     }
 }

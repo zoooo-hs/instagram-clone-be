@@ -1,12 +1,11 @@
 package com.zoooohs.instagramclone.domain.post.repository;
 
-import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
-import org.aspectj.lang.annotation.After;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -16,12 +15,13 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @EnableJpaAuditing
 @DataJpaTest
@@ -142,5 +142,31 @@ public class PostRepositoryTest {
         Optional<PostEntity> actual = this.postRepository.findById(post1.getId());
 
         assertTrue(actual.isEmpty());
+    }
+
+    @DisplayName("userId list로 post entity list select 하는 post repository")
+    @Test
+    public void findAllByUserIdTest() {
+        Date now = new Date();
+        String testEmail = "tt-sign-up-test-id"+now.getTime()+"@email.com";
+        String testPassword = "passwd";
+        String testName = "sign-up-test-name"+now.getTime();
+        UserEntity user2 = new UserEntity();
+        user2.setEmail(testEmail);
+        user2.setPassword(passwordEncoder.encode(testPassword));
+        user2.setName(testName);
+        this.userRepository.save(user2);
+        post1.setUser(user2);
+        post1 = this.postRepository.save(post1);
+        PostEntity post2 = PostEntity.builder().description("post2").user(user).build();
+        this.postRepository.save(post2);
+
+
+        List<PostEntity> actual = postRepository.findAllByUserId(List.of(user.getId(), user2.getId()), PageRequest.of(0, 20));
+
+        assertEquals(2, actual.size());
+        // order by desc
+        assertEquals(post1.getId(), actual.get(1).getId());
+        assertEquals(post2.getId(), actual.get(0).getId());
     }
 }

@@ -1,6 +1,7 @@
 package com.zoooohs.instagramclone.domain.post.entity;
 
 import com.zoooohs.instagramclone.domain.common.entity.BaseEntity;
+import com.zoooohs.instagramclone.domain.like.entity.PostLikeEntity;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import lombok.Builder;
@@ -10,7 +11,9 @@ import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -21,6 +24,7 @@ import java.util.List;
         @NamedEntityGraph(name = "post-feed", attributeNodes = {
                 @NamedAttributeNode(value = "user"),
                 @NamedAttributeNode(value = "photos"),
+                @NamedAttributeNode(value = "likes"),
         }),
 })
 public class PostEntity extends BaseEntity {
@@ -32,10 +36,17 @@ public class PostEntity extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
-    private List<PhotoEntity> photos;
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<PhotoEntity> photos = new HashSet<>();
 
-    public void setPhotos(List<PhotoEntity> photos) {
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
+    private Set<PostLikeEntity> likes = new HashSet<>();
+
+    public Long getLikeCount() {
+        return (long) likes.size();
+    }
+
+    public void setPhotos(Set<PhotoEntity> photos) {
         this.photos = photos;
         for (PhotoEntity photo: photos) {
             if (photo.getPost() == null) {
@@ -49,6 +60,6 @@ public class PostEntity extends BaseEntity {
         this.id = id;
         this.description = description;
         this.user = user;
-        this.photos = new ArrayList<>();
+        this.photos = new HashSet<>();
     }
 }

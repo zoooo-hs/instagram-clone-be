@@ -22,4 +22,12 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
 
     @EntityGraph("post-feed")
     PostEntity findByIdAndUserId(Long postId, Long userId);
+
+    @EntityGraph("post-feed")
+    @Query("SELECT p FROM PostEntity p WHERE p.user.id = :userId ORDER BY p.id DESC")
+    List<PostEntity> findMinesAndFollowUsers(Long userId, Pageable pageable);
+
+    @EntityGraph("post-feed")
+    @Query("SELECT p FROM PostEntity p WHERE p.user.id IN :userIds ORDER BY p.id DESC")
+    List<PostEntity> findAllByUserId(@Param("userIds") List<Long> userIds, Pageable pageable);
 }
