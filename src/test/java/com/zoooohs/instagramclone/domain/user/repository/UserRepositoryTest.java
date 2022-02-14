@@ -3,17 +3,20 @@ package com.zoooohs.instagramclone.domain.user.repository;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -94,5 +97,26 @@ public class UserRepositoryTest {
         assertEquals(userEntity.getEmail(), actual.get().getEmail());
         assertEquals(userEntity.getName(), actual.get().getName());
         assertTrue(nullActual.isEmpty());
+    }
+
+    @DisplayName("findByNameIgnoreCaseContaining name keyword, index, size에 만족하는 user entity 반환")
+    @Test
+    public void findByNameIgnoreCaseContainingTest() {
+        Pageable pageable = PageRequest.of(0, 20);
+
+        for (int i = 0; i < 30; i++) {
+            userEntity = UserEntity.builder()
+                    .name("a"+i).email("test@test.test"+i).password(passwordEncoder.encode("passwd")).build();
+            this.userRepository.save(userEntity);
+        }
+
+        Optional<List<UserEntity>> maybeUsers = Optional.ofNullable(userRepository.findByNameIgnoreCaseContaining("a1", pageable));
+
+        long count = maybeUsers.map(List::stream)
+                .map(actuals -> actuals.filter(actual -> actual.getName().contains("a1")))
+                .map(Stream::count)
+                .orElse((long) 0);
+
+        assertEquals(11, count);
     }
 }

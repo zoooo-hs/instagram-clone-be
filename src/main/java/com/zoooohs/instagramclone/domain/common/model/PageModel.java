@@ -5,9 +5,13 @@ import lombok.*;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class PageModel {
-    private int index;
-    private int size;
+    protected int index;
+    protected int size;
+
+    @Builder
+    public PageModel(int index, int size) {
+        this.index = index;
+        this.size = size;
+    }
 }
