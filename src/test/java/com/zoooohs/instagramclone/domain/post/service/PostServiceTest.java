@@ -9,6 +9,8 @@ import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
+import com.zoooohs.instagramclone.domain.post.service.PostService;
+import com.zoooohs.instagramclone.domain.post.service.PostServiceImpl;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.exception.ErrorCode;

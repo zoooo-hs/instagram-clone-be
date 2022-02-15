@@ -1,6 +1,7 @@
 package com.zoooohs.instagramclone.domain.post.repository;
 
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
+import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;

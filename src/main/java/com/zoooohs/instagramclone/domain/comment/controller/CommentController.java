@@ -24,8 +24,8 @@ public class CommentController {
     }
 
     @GetMapping("/post/{postId}/comment")
-    public List<CommentDto> getPostCommentList(@PathVariable Long postId, @ModelAttribute @NotNull PageModel pageModel) {
-        return commentService.getPostCommentList(postId, pageModel);
+    public List<CommentDto> getPostCommentList(@PathVariable Long postId, @ModelAttribute @NotNull PageModel pageModel, @AuthenticationPrincipal UserDto userDto) {
+        return commentService.getPostCommentList(postId, pageModel, userDto.getId());
     }
 
     @PatchMapping("/comment/{commentId}")
