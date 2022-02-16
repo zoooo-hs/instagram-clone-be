@@ -17,7 +17,6 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -57,7 +56,7 @@ public class UserServiceTest {
         assertEquals(id, actual.getId());
         assertEquals(name, actual.getName());
         assertEquals(bio, actual.getBio());
-        assertEquals(profilePhotoPath, actual.getProfilePhoto().getPath());
+        assertEquals(profilePhotoPath, actual.getPhoto().getPath());
     }
 
     private UserEntity makeUserEntity(Long id, String name, String bio, String profilePhotoPath) {
@@ -68,7 +67,7 @@ public class UserServiceTest {
         userEntity.setId(id);
         userEntity.setName(name);
         userEntity.setBio(bio);
-        userEntity.setProfilePhoto(photoEntity);
+        userEntity.setPhoto(photoEntity);
         return userEntity;
     }
 
@@ -122,7 +121,7 @@ public class UserServiceTest {
         userDto.setName(name);
         PhotoDto.Photo photoDto = new PhotoDto.Photo();
         photoDto.setPath(profilePhotoPath);
-        userDto.setProfilePhoto(photoDto);
+        userDto.setPhoto(photoDto);
         return userDto;
     }
 }

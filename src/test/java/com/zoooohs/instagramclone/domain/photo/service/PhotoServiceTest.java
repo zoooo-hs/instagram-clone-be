@@ -5,6 +5,10 @@ import com.zoooohs.instagramclone.domain.file.service.StorageService;
 import com.zoooohs.instagramclone.domain.photo.dto.PhotoDto;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.photo.repository.PhotoRepository;
+import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
+import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
+import com.zoooohs.instagramclone.exception.ErrorCode;
+import com.zoooohs.instagramclone.exception.ZooooException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -16,19 +20,21 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.anyList;
 import static org.mockito.BDDMockito.given;
 
 @ExtendWith(MockitoExtension.class)
+@TestPropertySource(properties = { "cloud.aws.s3.bucket=bucket" })
 public class PhotoServiceTest {
 
     PhotoService photoService;
@@ -38,16 +44,20 @@ public class PhotoServiceTest {
     @Mock
     PhotoRepository photoRepository;
 
+    @Mock
+    UserRepository userRepository;
+
     @Spy
     ModelMapper modelMapper;
 
     private List<MultipartFile> files;
     List<String> photoIds;
+    private List<PhotoEntity> photoEntities;
 
     @BeforeEach
     public void setUp() {
         storageService = new FileSystemStorageServiceImpl();
-        photoService = new PhotoServiceImpl(photoRepository, modelMapper);
+        photoService = new PhotoServiceImpl(photoRepository, userRepository, storageService, modelMapper);
         files = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             MockMultipartFile file =
@@ -56,6 +66,13 @@ public class PhotoServiceTest {
             files.add(file);
         }
         photoIds = storageService.store(files);
+        photoEntities = new ArrayList<>();
+        for (int i = 0; i < photoIds.size(); i++) {
+            PhotoEntity photoEntity = new PhotoEntity();
+            photoEntity.setPath(photoIds.get(i));
+            photoEntity.setId((long) i);
+            photoEntities.add(photoEntity);
+        }
     }
 
     @AfterEach
@@ -69,14 +86,6 @@ public class PhotoServiceTest {
     @DisplayName("path혹은 식별자를 File 관련 Entity에 저장")
     @Test
     public void saveAllTest() {
-        List<PhotoEntity> photoEntities = new ArrayList<>();
-        for (int i = 0; i < photoIds.size(); i++) {
-            PhotoEntity photoEntity = new PhotoEntity();
-            photoEntity.setPath(photoIds.get(i));
-            photoEntity.setId((long) i);
-            photoEntities.add(photoEntity);
-        }
-
         given(photoRepository.saveAll(anyList())).willReturn(photoEntities);
 
         List<PhotoDto.Photo> actual = this.photoService.saveAll(photoIds);
@@ -84,6 +93,40 @@ public class PhotoServiceTest {
         assertEquals(photoIds.size(), actual.size());
         for (PhotoDto.Photo photo: actual) {
             assertTrue(photo.getId() != null);
+        }
+    }
+
+    @DisplayName("userId, Multipartfile 받아 photo 저장, photo entity 저장, user entity에 photo 연결 후 photo 반환")
+    @Test
+    public void uploadProfileTet() {
+        MockMultipartFile photo = new MockMultipartFile("photo", "original_name.jpg", MediaType.IMAGE_JPEG_VALUE, "image_content".getBytes());
+        Long userId = 1L;
+
+        given(userRepository.findById((1L))).willReturn(Optional.ofNullable(UserEntity.builder().id(1L).build()));
+        given(photoRepository.saveAll(anyList())).willReturn(photoEntities);
+
+        PhotoDto.Photo actual = photoService.uploadProfile(photo, userId);
+
+        assertNotNull(actual);
+        assertNotNull(actual.getId());
+        assertNotNull(actual.getPath());
+
+        photoIds.add(actual.getPath()); // for tear down
+    }
+
+    @DisplayName("multipart가 jpg, png아닐 경우 INVALID_FILE_TYPE throw")
+    @Test
+    public void uploadProfileFailure400Tet() {
+        MockMultipartFile photo = new MockMultipartFile("photo", "original_name.jpg", MediaType.TEXT_PLAIN_VALUE, "image_content".getBytes());
+        Long userId = 1L;
+
+        try {
+            photoService.uploadProfile(photo, userId);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.INVALID_FILE_TYPE, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
         }
     }
 }

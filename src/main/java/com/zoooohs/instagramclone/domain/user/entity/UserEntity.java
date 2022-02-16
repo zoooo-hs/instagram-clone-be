@@ -6,7 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -21,7 +20,7 @@ import java.util.Collection;
 @Entity(name = "user")
 @NamedEntityGraphs({
         @NamedEntityGraph(name = "user-info", attributeNodes = {
-                @NamedAttributeNode("profilePhoto")
+                @NamedAttributeNode("photo")
         })
 })
 public class UserEntity extends BaseEntity implements UserDetails {
@@ -41,9 +40,9 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @Column(name = "bio")
     private String bio;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "profile_photo_id")
-    private PhotoEntity profilePhoto;
+    @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true)
+    @JoinColumn(name = "photo_id")
+    private PhotoEntity photo;
 
     @Builder
     public UserEntity(Long id, String email, String password, String name) {

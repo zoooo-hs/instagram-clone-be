@@ -52,7 +52,7 @@ public class UserControllerTest {
 
         List<UserDto.Info> users = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
-            UserDto.Info user = UserDto.Info.builder().id((long)i).bio("bio").name("aaa").profilePhoto(new PhotoDto.Photo()).build();
+            UserDto.Info user = UserDto.Info.builder().id((long)i).bio("bio").name("aaa").photo(new PhotoDto.Photo()).build();
             users.add(user);
         }
 

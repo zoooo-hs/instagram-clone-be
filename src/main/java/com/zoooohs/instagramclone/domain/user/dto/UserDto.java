@@ -38,14 +38,14 @@ public class UserDto {
         private Long id;
         private String name;
         private String bio;
-        private PhotoDto.Photo profilePhoto;
+        private PhotoDto.Photo photo;
 
         @Builder
-        public Info(Long id, String name, String bio, PhotoDto.Photo profilePhoto) {
+        public Info(Long id, String name, String bio, PhotoDto.Photo photo) {
             this.id = id;
             this.name = name;
             this.bio = bio;
-            this.profilePhoto = profilePhoto;
+            this.photo = photo;
         }
     }
 

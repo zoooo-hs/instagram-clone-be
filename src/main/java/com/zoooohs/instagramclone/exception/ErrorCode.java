@@ -5,6 +5,9 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 public enum ErrorCode {
+    // 400 BAD_REQUEST
+    INVALID_FILE_TYPE(HttpStatus.BAD_REQUEST, "올바르지 않은 파일 타입 입니다."),
+
     // 401 UNAUTHORIZED
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "만료된 토큰 입니다."),
 

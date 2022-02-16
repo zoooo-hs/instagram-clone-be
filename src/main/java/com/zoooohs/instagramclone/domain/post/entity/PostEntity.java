@@ -10,9 +10,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import javax.persistence.*;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Getter
@@ -48,6 +46,9 @@ public class PostEntity extends BaseEntity {
 
     public void setPhotos(Set<PhotoEntity> photos) {
         this.photos = photos;
+        if (photos == null) {
+            return;
+        }
         for (PhotoEntity photo: photos) {
             if (photo.getPost() == null) {
                 photo.setPost(this);

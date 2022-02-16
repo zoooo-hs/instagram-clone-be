@@ -17,7 +17,7 @@ import java.util.List;
 public class PostController {
     private final PostService postService;
 
-    @PostMapping(value = "/post")
+    @PostMapping("/post")
     public PostDto.Post create(@RequestParam("description") @NotNull String description, @RequestPart("files") List<MultipartFile> files, @AuthenticationPrincipal UserDto userDto) {
         PostDto.Post result = this.postService.create(PostDto.Post.builder().description(description).build(), files, userDto);
         return result;
