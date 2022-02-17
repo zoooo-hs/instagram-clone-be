@@ -99,19 +99,37 @@ public class PhotoServiceTest {
     @DisplayName("userId, Multipartfile 받아 photo 저장, photo entity 저장, user entity에 photo 연결 후 photo 반환")
     @Test
     public void uploadProfileTet() {
+        MockMultipartFile oldPhoto = new MockMultipartFile("photo", "old_name.jpg", MediaType.IMAGE_JPEG_VALUE, "image_content".getBytes());
+        String oldPath = storageService.store(List.of(oldPhoto)).get(0);
+
         MockMultipartFile photo = new MockMultipartFile("photo", "original_name.jpg", MediaType.IMAGE_JPEG_VALUE, "image_content".getBytes());
+        String newPath = "nulloriginal_name.jpg";
         Long userId = 1L;
 
-        given(userRepository.findById((1L))).willReturn(Optional.ofNullable(UserEntity.builder().id(1L).build()));
-        given(photoRepository.saveAll(anyList())).willReturn(photoEntities);
+        UserEntity user = UserEntity.builder().id(1L).build();
+
+        PhotoEntity oldPhotoEntity = new PhotoEntity();
+        oldPhotoEntity.setPath(oldPath);
+        user.setPhoto(oldPhotoEntity);
+        PhotoEntity newPhotoEntity = new PhotoEntity();
+        newPhotoEntity.setId(111L);
+        newPhotoEntity.setPath(newPath);
+
+        photoIds.add(newPath); // for tear down
+        photoIds.add(oldPath); // for tear down
+
+        given(userRepository.findById((1L))).willReturn(Optional.ofNullable(user));
+        given(photoRepository.saveAll(anyList())).willReturn(List.of(newPhotoEntity));
+
 
         PhotoDto.Photo actual = photoService.uploadProfile(photo, userId);
 
-        assertNotNull(actual);
-        assertNotNull(actual.getId());
-        assertNotNull(actual.getPath());
 
-        photoIds.add(actual.getPath()); // for tear down
+        assertNotNull(actual);
+        assertEquals(newPhotoEntity.getId(), actual.getId());
+        assertEquals(newPhotoEntity.getPath(), actual.getPath());
+        assertTrue(storageService.exists(actual.getPath()));
+        assertFalse(storageService.exists(oldPath));
     }
 
     @DisplayName("multipart가 jpg, png아닐 경우 INVALID_FILE_TYPE throw")

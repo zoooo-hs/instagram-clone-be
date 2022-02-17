@@ -52,7 +52,11 @@ public class PhotoServiceImpl implements PhotoService {
         return Optional.ofNullable(storageService.store(List.of(photo))).map(this::saveAll).map(photos -> photos.get(0)).map(photoDto -> {
             user.setPhoto(modelMapper.map(photoDto, PhotoEntity.class));
             userRepository.save(user);
-            oldPhoto.ifPresent(entity -> photoRepository.delete(entity));
+            oldPhoto.ifPresent(entity -> {
+                String oldPath = entity.getPath();
+                photoRepository.delete(entity);
+                storageService.delete(oldPath);
+            });
             return photoDto;
         }).orElse(null);
     }

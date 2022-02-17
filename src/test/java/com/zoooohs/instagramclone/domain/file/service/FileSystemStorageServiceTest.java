@@ -17,12 +17,12 @@ public class FileSystemStorageServiceTest extends BaseStorageServiceTest {
     @Override
     @BeforeEach
     public void setUp() {
-        super.setUp();
         storageService = new FileSystemStorageServiceImpl();
         bucketName = "bucket-name" + UUID.randomUUID() + "/";
         storageService.setBucketName(bucketName);
         bucket = new File(bucketName);
         bucket.mkdir();
+        super.setUp();
     }
 
     @Override

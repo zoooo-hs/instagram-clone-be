@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.annotation.PostConstruct;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -46,5 +48,33 @@ public class S3StorageServiceImpl implements StorageService {
 
     public void setBucketName(String bucketName) {
         this.bucketName = bucketName;
+    }
+
+    @Override
+    public void delete(String path) {
+        // 없는 파일 삭제 호출 시 내부 로그라도 남겨야 할 것 같음
+        if (exists(path)) {
+            String fileName = getFileName(path);
+            amazonS3Client.deleteObject(bucketName, fileName);
+        }
+    }
+
+    @Override
+    public Boolean exists(String path) {
+        String fileName = getFileName(path);
+        if (fileName == null) return false;
+        return amazonS3Client.doesObjectExist(bucketName, fileName);
+    }
+
+    private String getFileName(String path) {
+        String [] temp = path.split("amazonaws\\.com/");
+        if (temp.length != 2) {
+            temp = path.split(bucketName + "/");
+        }
+        if (temp.length != 2) {
+            return null;
+        }
+        String fileName= temp[1];
+        return fileName;
     }
 }

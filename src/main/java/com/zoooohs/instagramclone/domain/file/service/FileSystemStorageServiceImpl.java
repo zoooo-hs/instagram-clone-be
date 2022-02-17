@@ -2,14 +2,12 @@ package com.zoooohs.instagramclone.domain.file.service;
 
 import com.zoooohs.instagramclone.exception.ErrorCode;
 import com.zoooohs.instagramclone.exception.ZooooException;
-import com.zoooohs.instagramclone.util.FileUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 //@Service
@@ -21,7 +19,7 @@ public class FileSystemStorageServiceImpl implements StorageService {
     @Override
     public List<String> store(List<MultipartFile> files) {
         return files.stream().map(multipartFile -> {
-            String path = bucketName + UUID.randomUUID() + FileUtils.getExtension(multipartFile.getOriginalFilename());
+            String path = bucketName + multipartFile.getOriginalFilename();
             File file = new File(path);
             try {
                 multipartFile.transferTo(file);
@@ -35,5 +33,17 @@ public class FileSystemStorageServiceImpl implements StorageService {
 
     public void setBucketName(String bucketName) {
         this.bucketName = bucketName;
+    }
+
+    @Override
+    public void delete(String path) {
+        if (exists(path)) {
+            new File(path).delete();
+        }
+    }
+
+    @Override
+    public Boolean exists(String path) {
+        return new File(path).exists();
     }
 }

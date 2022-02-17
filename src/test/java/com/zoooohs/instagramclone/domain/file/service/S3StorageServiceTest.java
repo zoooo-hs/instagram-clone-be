@@ -19,7 +19,6 @@ public class S3StorageServiceTest extends BaseStorageServiceTest {
     @Override
     @BeforeEach
     public void setUp() {
-        super.setUp();
         api = new S3Mock.Builder().withPort(8001).withInMemoryBackend().build();
         api.start();
         AwsClientBuilder.EndpointConfiguration endpoint = new AwsClientBuilder.EndpointConfiguration("http://localhost:8001", "ap-northeast-2");
@@ -33,6 +32,7 @@ public class S3StorageServiceTest extends BaseStorageServiceTest {
         amazonS3Client.createBucket(bucketName);
         storageService = new S3StorageServiceImpl(amazonS3Client);
         storageService.setBucketName(bucketName);
+        super.setUp();
     }
 
     @AfterEach
