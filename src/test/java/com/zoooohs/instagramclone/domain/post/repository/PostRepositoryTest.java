@@ -1,7 +1,7 @@
 package com.zoooohs.instagramclone.domain.post.repository;
 
+import com.zoooohs.instagramclone.domain.hashtag.entity.HashTagEntity;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
-import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.AfterEach;
@@ -16,10 +16,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -169,5 +167,20 @@ public class PostRepositoryTest {
         // order by desc
         assertEquals(post1.getId(), actual.get(1).getId());
         assertEquals(post2.getId(), actual.get(0).getId());
+    }
+
+    @DisplayName("tag로 모든 게시글 찾는 레포지토리 테스트")
+    @Test
+    public void findAllByTag() {
+        List<String> tags = List.of("#hello", "#world", "#bye_bye_bye");
+        Set<HashTagEntity> hashTagEntities = tags.stream().map(tag -> HashTagEntity.builder().post(post1).tag(tag).build()).collect(Collectors.toSet());
+        post1.setHashTags(hashTagEntities);
+        post1.setDescription("#world #hello #bye_bye_bye hihi");
+        postRepository.save(post1);
+
+        List<PostEntity> actual = postRepository.findAllByTag("#hello", PageRequest.of(0, 20));
+
+        assertEquals(1, actual.size());
+        assertTrue(actual.get(0).getDescription().contains("#hello"));
     }
 }

@@ -1,6 +1,7 @@
 package com.zoooohs.instagramclone.domain.post.service;
 
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
+import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.file.service.StorageService;
 import com.zoooohs.instagramclone.domain.follow.entity.FollowEntity;
 import com.zoooohs.instagramclone.domain.follow.repository.FollowRepository;
@@ -10,8 +11,6 @@ import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
-import com.zoooohs.instagramclone.domain.post.service.PostService;
-import com.zoooohs.instagramclone.domain.post.service.PostServiceImpl;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.exception.ErrorCode;
@@ -105,14 +104,47 @@ public class PostServiceTest {
 
         List<FollowEntity> followEntities = new ArrayList<>();
 
+        SearchModel searchModel = new SearchModel();
+        searchModel.setIndex(0);
+        searchModel.setSize(20);
+
+
         given(followRepository.findByUserId(eq(user.getId()))).willReturn(followEntities);
         given(this.postRepository.findAllByUserId(anyList(), eq(PageRequest.of(0, 20)))).willReturn(posts.subList(0, 20));
 
-        List<PostDto.Post> actual = postService.getFeeds(user.getId(), PageModel.builder().index(0).size(20).build());
+        List<PostDto.Post> actual = postService.getFeeds(user.getId(), searchModel);
 
 
         assertTrue(20 >= actual.size());
         assertTrue(0 < actual.size());
+    }
+
+    @DisplayName("userId 자신과 팔로워들의 게시글 dto list 반환")
+    @Test
+    public void getFeedsByHashTagTest() {
+        List<PostEntity> posts = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            PostEntity post = new PostEntity();
+            post.setDescription("#hello desc"+i);
+            post.setUser(UserEntity.builder().id(user.getId()).build());
+            posts.add(post);
+        }
+
+        SearchModel searchModel = new SearchModel();
+        searchModel.setKeyword("#hello");
+        searchModel.setIndex(0);
+        searchModel.setSize(20);
+
+        given(postRepository.findAllByTag(eq("#hello"), eq(PageRequest.of(0, 20)))).willReturn(posts.subList(0, 20));
+
+        List<PostDto.Post> actual = postService.getFeeds(user.getId(), searchModel);
+
+
+        assertTrue(20 >= actual.size());
+        assertTrue(0 < actual.size());
+        for (int i = 0; i < actual.size(); i++) {
+            assertTrue(actual.get(i).getDescription().contains("#hello"));
+        }
     }
 
     @Test

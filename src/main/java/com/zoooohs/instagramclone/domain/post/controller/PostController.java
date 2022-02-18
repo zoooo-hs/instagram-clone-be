@@ -1,6 +1,7 @@
 package com.zoooohs.instagramclone.domain.post.controller;
 
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
+import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.service.PostService;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
@@ -24,8 +25,8 @@ public class PostController {
     }
 
     @GetMapping("/post")
-    public List<PostDto.Post> getFeeds(@ModelAttribute PageModel pageModel, @AuthenticationPrincipal UserDto userDto) {
-        return this.postService.getFeeds(userDto.getId(), pageModel);
+    public List<PostDto.Post> getFeeds(@ModelAttribute SearchModel searchModel, @AuthenticationPrincipal UserDto userDto) {
+        return this.postService.getFeeds(userDto.getId(), searchModel);
     }
 
     @GetMapping("/user/{userId}/post")

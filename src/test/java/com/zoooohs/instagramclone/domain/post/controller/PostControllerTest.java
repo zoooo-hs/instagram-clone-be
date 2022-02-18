@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zoooohs.instagramclone.configuration.SecurityConfiguration;
 import com.zoooohs.instagramclone.configure.WithAuthUser;
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
+import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.photo.dto.PhotoDto;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.service.PostService;
@@ -13,6 +14,7 @@ import com.zoooohs.instagramclone.exception.ErrorCode;
 import com.zoooohs.instagramclone.exception.ZooooException;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
@@ -119,12 +121,38 @@ public class PostControllerTest {
             postDtos.add(postDto);
         }
 
-        given(postService.getFeeds(eq(user.getId()), any(PageModel.class))).willReturn(postDtos);
+        given(postService.getFeeds(eq(user.getId()), any(SearchModel.class))).willReturn(postDtos);
 
         mockMvc.perform(MockMvcRequestBuilders.get(url)
                 .queryParam("index", "0")
                 .queryParam("size", "20"))
                 .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].like_count", Matchers.instanceOf(Integer.class)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].liked", Matchers.instanceOf(Boolean.class)))
+        ;
+    }
+
+    @DisplayName("hash tag 기반 게시글 조회")
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L)
+    public void getFeedByHashTagTest() throws Exception {
+        String url = "/post";
+
+        List<PostDto.Post> postDtos = new ArrayList<>();
+
+        for (int i = 0; i < 10; i++) {
+            PostDto.Post postDto = PostDto.Post.builder().id((long)i).description("#hello").isLiked(true).likeCount((long)10).build();
+            postDtos.add(postDto);
+        }
+
+        given(postService.getFeeds(eq(user.getId()), any(SearchModel.class))).willReturn(postDtos);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(url)
+                        .queryParam("keyword", "#hello")
+                        .queryParam("index", "0")
+                        .queryParam("size", "20"))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].description", Matchers.containsString("#hello")))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].like_count", Matchers.instanceOf(Integer.class)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].liked", Matchers.instanceOf(Boolean.class)))
         ;

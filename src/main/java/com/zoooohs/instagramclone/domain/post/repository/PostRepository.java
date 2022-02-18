@@ -35,4 +35,8 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     @EntityGraph("post-all-child")
     @Query("SELECT p FROM PostEntity p WHERE p.id = :id")
     Optional<PostEntity> findByIdForDelete(@Param("id") Long postId);
+
+    @EntityGraph("post-feed")
+    @Query("SELECT ht.post FROM hash_tag ht JOIN PostEntity p ON ht.post.id = p.id WHERE ht.tag = :tag ORDER BY p.id DESC")
+    List<PostEntity> findAllByTag(@Param("tag") String tag, Pageable pageable);
 }

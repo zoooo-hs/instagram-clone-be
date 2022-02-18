@@ -1,6 +1,7 @@
 package com.zoooohs.instagramclone.domain.post.service;
 
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
+import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.file.service.StorageService;
 import com.zoooohs.instagramclone.domain.follow.repository.FollowRepository;
 import com.zoooohs.instagramclone.domain.hashtag.entity.HashTagEntity;
@@ -87,10 +88,15 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public List<PostDto.Post> getFeeds(Long userId, PageModel pageModel) {
-        List<Long> userIds = followRepository.findByUserId(userId).stream().map(entity -> entity.getFollowUser().getId()).collect(Collectors.toList());
-        userIds.add(userId);
-        List<PostEntity> postEntities = postRepository.findAllByUserId(userIds, PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+    public List<PostDto.Post> getFeeds(Long userId, SearchModel searchModel) {
+        List<PostEntity> postEntities;
+        if (searchModel.getKeyword() == null) {
+            List<Long> userIds = followRepository.findByUserId(userId).stream().map(entity -> entity.getFollowUser().getId()).collect(Collectors.toList());
+            userIds.add(userId);
+            postEntities = postRepository.findAllByUserId(userIds, PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
+        } else {
+            postEntities = postRepository.findAllByTag(searchModel.getKeyword(), PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
+        }
         return makePostDto(postEntities, userId);
     }
 
