@@ -2,6 +2,7 @@ package com.zoooohs.instagramclone.domain.file.service;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.zoooohs.instagramclone.exception.ErrorCode;
@@ -12,8 +13,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.annotation.PostConstruct;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -64,6 +63,20 @@ public class S3StorageServiceImpl implements StorageService {
         String fileName = getFileName(path);
         if (fileName == null) return false;
         return amazonS3Client.doesObjectExist(bucketName, fileName);
+    }
+
+    @Override
+    public void deleteAll(List<String> paths) {
+        DeleteObjectsRequest request = new DeleteObjectsRequest(bucketName);
+        List<DeleteObjectsRequest.KeyVersion> keys = paths.stream()
+                .map(this::getFileName).map(DeleteObjectsRequest.KeyVersion::new).collect(Collectors.toList());
+        request.setKeys(keys);
+        try {
+            amazonS3Client.deleteObjects(request);
+        } catch (Exception e) {
+            // TODO: AOP log
+            e.printStackTrace();
+        }
     }
 
     private String getFileName(String path) {

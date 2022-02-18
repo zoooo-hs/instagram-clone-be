@@ -46,4 +46,11 @@ public class FileSystemStorageServiceImpl implements StorageService {
     public Boolean exists(String path) {
         return new File(path).exists();
     }
+
+    @Override
+    public void deleteAll(List<String> paths) {
+        for(String path: paths) {
+            this.delete(path);
+        }
+    }
 }

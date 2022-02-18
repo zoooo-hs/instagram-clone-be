@@ -83,7 +83,9 @@ public class PostServiceImpl implements PostService {
         if (postEntity == null) {
             throw new ZooooException(ErrorCode.POST_NOT_FOUND);
         }
+        List<String> photoPaths = postEntity.getPhotos().stream().map(PhotoEntity::getPath).collect(Collectors.toList());
         this.postRepository.delete(postEntity);
+        photoPaths.stream().forEach(storageService::delete);
         return postId;
     }
 

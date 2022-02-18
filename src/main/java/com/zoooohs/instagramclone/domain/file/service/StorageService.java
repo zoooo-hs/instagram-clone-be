@@ -12,4 +12,6 @@ public interface StorageService {
     void delete(String path);
 
     Boolean exists(String path);
+
+    void deleteAll(List<String> paths);
 }

@@ -76,5 +76,17 @@ public abstract class BaseStorageServiceTest {
         assertFalse(exists);
     }
 
+    @DisplayName("여러 경로를 넘기면 한번의 bulk 삭제 서비스")
+    @Test
+    public void deleteAllTest() {
+        List<String> paths = storageService.store(files);
+
+        storageService.deleteAll(paths);
+
+        for (String path: paths) {
+            assertFalse(storageService.exists(path));
+        }
+    }
+
     public void bucketExistTest() {}
 }
