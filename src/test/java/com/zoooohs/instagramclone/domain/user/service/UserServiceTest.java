@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -104,7 +104,11 @@ public class UserServiceTest {
 
         given(userRepository.findByNameIgnoreCaseContaining("aa", PageRequest.of(0, 20))).willReturn(users);
 
+        // 여기까지 Optional일 필요가 있나 싶긴하다
         Optional<List<UserDto.Info>> maybeUsers = Optional.ofNullable(userService.getUsers(searchModel));
+
+        searchModel.setSearchKey(SearchKeyType.HASH_TAG);
+        Optional<List<UserDto.Info>> maybeZero = Optional.ofNullable(userService.getUsers(searchModel));
 
         long count = maybeUsers.map(List::stream)
                 .map(actuals -> actuals.filter(actual -> actual.getName().contains(searchModel.getKeyword())))
@@ -112,6 +116,7 @@ public class UserServiceTest {
                 .orElse((long) 0);
 
         assertEquals(users.size(), count);
+        assertEquals(0, maybeZero.map(List::size).orElse(0));
     }
 
     private UserDto.Info makeUserDto(Long id, String name, String bio, String profilePhotoPath) {

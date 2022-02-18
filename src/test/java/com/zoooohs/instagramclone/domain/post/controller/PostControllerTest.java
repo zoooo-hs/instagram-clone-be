@@ -149,6 +149,7 @@ public class PostControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.get(url)
                         .queryParam("keyword", "#hello")
+                        .queryParam("searchKey", "HASH_TAG")
                         .queryParam("index", "0")
                         .queryParam("size", "20"))
                 .andExpect(MockMvcResultMatchers.status().isOk())

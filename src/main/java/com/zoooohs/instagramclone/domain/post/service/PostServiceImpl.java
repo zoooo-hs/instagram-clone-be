@@ -2,6 +2,7 @@ package com.zoooohs.instagramclone.domain.post.service;
 
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
 import com.zoooohs.instagramclone.domain.common.model.SearchModel;
+import com.zoooohs.instagramclone.domain.common.type.SearchKeyType;
 import com.zoooohs.instagramclone.domain.file.service.StorageService;
 import com.zoooohs.instagramclone.domain.follow.repository.FollowRepository;
 import com.zoooohs.instagramclone.domain.hashtag.entity.HashTagEntity;
@@ -22,7 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -91,24 +94,26 @@ public class PostServiceImpl implements PostService {
 
     @Override
     public List<PostDto.Post> getFeeds(Long userId, SearchModel searchModel) {
-        List<PostEntity> postEntities;
+        List<PostEntity> postEntities = null;
         if (searchModel.getKeyword() == null) {
             List<Long> userIds = followRepository.findByUserId(userId).stream().map(entity -> entity.getFollowUser().getId()).collect(Collectors.toList());
             userIds.add(userId);
             postEntities = postRepository.findAllByUserId(userIds, PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
         } else {
-            postEntities = postRepository.findAllByTag(searchModel.getKeyword(), PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
+            if (searchModel.getSearchKey().equals(SearchKeyType.HASH_TAG)) {
+                postEntities = postRepository.findAllByTag(searchModel.getKeyword(), PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
+            }
         }
         return makePostDto(postEntities, userId);
     }
 
     private List<PostDto.Post> makePostDto(List<PostEntity> postEntities, Long userId) {
-        return postEntities.stream().map(entity -> {
+        return Optional.ofNullable(postEntities).map(Collection::stream).map(stream -> stream.map(entity -> {
             PostDto.Post post = this.modelMapper.map(entity, PostDto.Post.class);
             boolean isLiked = entity.getLikes().stream().filter(like -> like.getUser().getId().equals(userId)).findFirst().isPresent();
             post.isLiked(isLiked);
             return post;
-        }).collect(Collectors.toList());
+        }).collect(Collectors.toList())).orElse(List.of());
     }
 
     private Set<HashTagEntity> getHashTagEntities(String content, Long postId) {

@@ -2,6 +2,7 @@ package com.zoooohs.instagramclone.domain.post.service;
 
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
 import com.zoooohs.instagramclone.domain.common.model.SearchModel;
+import com.zoooohs.instagramclone.domain.common.type.SearchKeyType;
 import com.zoooohs.instagramclone.domain.file.service.StorageService;
 import com.zoooohs.instagramclone.domain.follow.entity.FollowEntity;
 import com.zoooohs.instagramclone.domain.follow.repository.FollowRepository;
@@ -132,6 +133,7 @@ public class PostServiceTest {
 
         SearchModel searchModel = new SearchModel();
         searchModel.setKeyword("#hello");
+        searchModel.setSearchKey(SearchKeyType.HASH_TAG);
         searchModel.setIndex(0);
         searchModel.setSize(20);
 
@@ -139,12 +141,16 @@ public class PostServiceTest {
 
         List<PostDto.Post> actual = postService.getFeeds(user.getId(), searchModel);
 
+        searchModel.setSearchKey(SearchKeyType.NAME);
+        List<PostDto.Post> actualZeroSize = postService.getFeeds(user.getId(), searchModel);
+
 
         assertTrue(20 >= actual.size());
         assertTrue(0 < actual.size());
         for (int i = 0; i < actual.size(); i++) {
             assertTrue(actual.get(i).getDescription().contains("#hello"));
         }
+        assertEquals(0, actualZeroSize.size());
     }
 
     @Test
