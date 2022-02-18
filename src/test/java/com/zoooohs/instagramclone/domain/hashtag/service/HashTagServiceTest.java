@@ -1,6 +1,8 @@
 package com.zoooohs.instagramclone.domain.hashtag.service;
 
+import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.hashtag.dto.HashTagDto;
+import com.zoooohs.instagramclone.domain.hashtag.dto.Search;
 import com.zoooohs.instagramclone.domain.hashtag.entity.HashTagEntity;
 import com.zoooohs.instagramclone.domain.hashtag.repository.HashTagRepository;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
@@ -12,9 +14,11 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Pageable;
 
 import static org.mockito.BDDMockito.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -93,6 +97,28 @@ public class HashTagServiceTest {
         List<HashTagDto> actual = hashTagService.manage(content, null);
 
         assertEquals(4, actual.size());
+    }
+
+    @DisplayName("paging, keyword 받아와 hashtag 리스트 반환하는 서비스")
+    @Test
+    public void searchTest() {
+        SearchModel searchModel = new SearchModel();
+        searchModel.setKeyword("hello");
+        searchModel.setIndex(0);
+        searchModel.setSize(20);
+
+        List<Search> hashTagDtos = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            Search hashTagDto = Search.builder().tag("hello"+i).count((long)20-i).build();
+            hashTagDtos.add(hashTagDto);
+        }
+
+        given(hashTagRepository.searchLikeTag(any(String.class), any(Pageable.class))).willReturn(hashTagDtos);
+
+        List<Search> actual = hashTagService.search(searchModel);
+
+        assertInstanceOf(Long.class, actual.get(0).getCount());
+        assertEquals(hashTagDtos.size(), actual.size());
     }
 
 }

@@ -1,5 +1,6 @@
 package com.zoooohs.instagramclone.domain.hashtag.repository;
 
+import com.zoooohs.instagramclone.domain.hashtag.dto.Search;
 import com.zoooohs.instagramclone.domain.hashtag.entity.HashTagEntity;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -138,5 +140,15 @@ public class HashTagRepositoryTest {
 
         actual = hashTagRepository.findAllById(hashTagIds);
         assertEquals(0, actual.size());
+    }
+
+    @DisplayName("keyword, pageable  받아와, hashtag 리스트 반환하는 레포지토리")
+    @Test
+    public void searchLikeTagTest() {
+        hashTagRepository.saveAll(hashTagEntities);
+
+        List<Search> actual = hashTagRepository.searchLikeTag("e", PageRequest.of(0, 20));
+
+        assertEquals(2, actual.size());
     }
 }

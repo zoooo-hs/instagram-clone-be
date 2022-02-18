@@ -1,10 +1,13 @@
 package com.zoooohs.instagramclone.domain.hashtag.service;
 
+import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.hashtag.dto.HashTagDto;
+import com.zoooohs.instagramclone.domain.hashtag.dto.Search;
 import com.zoooohs.instagramclone.domain.hashtag.entity.HashTagEntity;
 import com.zoooohs.instagramclone.domain.hashtag.repository.HashTagRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -50,5 +53,10 @@ public class HashTagServiceImpl implements HashTagService {
 
         willSave.addAll(willRemain);
         return willSave.stream().map(entity -> modelMapper.map(entity, HashTagDto.class)).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Search> search(SearchModel searchModel) {
+        return hashTagRepository.searchLikeTag(searchModel.getKeyword(), PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
     }
 }
