@@ -1,6 +1,7 @@
 package com.zoooohs.instagramclone.domain.post.entity;
 
 import com.zoooohs.instagramclone.domain.common.entity.BaseEntity;
+import com.zoooohs.instagramclone.domain.hashtag.entity.HashTagEntity;
 import com.zoooohs.instagramclone.domain.like.entity.PostLikeEntity;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
@@ -24,6 +25,9 @@ import java.util.Set;
                 @NamedAttributeNode(value = "photos"),
                 @NamedAttributeNode(value = "likes"),
         }),
+        @NamedEntityGraph(name = "post-all-child", attributeNodes = {
+                @NamedAttributeNode(value = "hashTags"),
+        }),
 })
 public class PostEntity extends BaseEntity {
     // TODO: hash tag 알 수 있는 방법 추가하기
@@ -34,14 +38,33 @@ public class PostEntity extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
+    // TODO: cascade 범위 다시 고려
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<PhotoEntity> photos = new HashSet<>();
 
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
     private Set<PostLikeEntity> likes = new HashSet<>();
 
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
+    private Set<HashTagEntity> hashTags = new HashSet<>();
+
     public Long getLikeCount() {
         return (long) likes.size();
+    }
+
+    public void setHashTags(Set<HashTagEntity> hashTags) {
+        this.hashTags.clear();
+        if (hashTags != null) {
+            this.hashTags.addAll(hashTags);
+        }
+//        if (hashTags == null) {
+//            return;
+//        }
+        for (HashTagEntity hashTag: hashTags) {
+            if (hashTag.getPost() == null) {
+                hashTag.setPost(this);
+            }
+        }
     }
 
     public void setPhotos(Set<PhotoEntity> photos) {

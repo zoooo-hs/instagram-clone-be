@@ -4,6 +4,7 @@ import com.zoooohs.instagramclone.domain.common.model.PageModel;
 import com.zoooohs.instagramclone.domain.file.service.StorageService;
 import com.zoooohs.instagramclone.domain.follow.entity.FollowEntity;
 import com.zoooohs.instagramclone.domain.follow.repository.FollowRepository;
+import com.zoooohs.instagramclone.domain.hashtag.service.HashTagService;
 import com.zoooohs.instagramclone.domain.like.entity.PostLikeEntity;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
@@ -50,6 +51,8 @@ public class PostServiceTest {
     FollowRepository followRepository;
     @Mock
     StorageService storageService;
+    @Mock
+    HashTagService hashTagService;
 
     PostDto.Post post;
     UserDto user;
@@ -57,7 +60,7 @@ public class PostServiceTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        postService = new PostServiceImpl(postRepository, followRepository, modelMapper, storageService);
+        postService = new PostServiceImpl(postRepository, followRepository, modelMapper, storageService, hashTagService);
         user = UserDto.builder().id(1L).build();
         UserDto.Feed userFeed = this.modelMapper.map(user, UserDto.Feed.class);
         post = PostDto.Post.builder().description("some desc").user(userFeed).photos(new ArrayList<>()).build();

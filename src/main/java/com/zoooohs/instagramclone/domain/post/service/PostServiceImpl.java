@@ -3,6 +3,8 @@ package com.zoooohs.instagramclone.domain.post.service;
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
 import com.zoooohs.instagramclone.domain.file.service.StorageService;
 import com.zoooohs.instagramclone.domain.follow.repository.FollowRepository;
+import com.zoooohs.instagramclone.domain.hashtag.entity.HashTagEntity;
+import com.zoooohs.instagramclone.domain.hashtag.service.HashTagService;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
@@ -30,6 +32,7 @@ public class PostServiceImpl implements PostService {
     private final FollowRepository followRepository;
     private final ModelMapper modelMapper;
     private final StorageService storageService;
+    private final HashTagService hashTagService;
 
     @Transactional
     @Override
@@ -40,6 +43,7 @@ public class PostServiceImpl implements PostService {
         PostEntity post = this.modelMapper.map(postDto, PostEntity.class);
         post.setUser(user);
         post.setPhotos(photos);
+        post.setHashTags(getHashTagEntities(post.getDescription(), post.getId()));
         post = this.postRepository.save(post);
         return this.modelMapper.map(post, PostDto.Post.class);
     }
@@ -66,6 +70,7 @@ public class PostServiceImpl implements PostService {
             throw new ZooooException(ErrorCode.POST_NOT_FOUND);
         }
         postEntity.setDescription(post.getDescription());
+        postEntity.setHashTags(getHashTagEntities(post.getDescription(), postId ));
         postEntity = this.postRepository.save(postEntity);
         PostDto.Post result = this.modelMapper.map(postEntity, PostDto.Post.class);
         return result;
@@ -96,5 +101,10 @@ public class PostServiceImpl implements PostService {
             post.isLiked(isLiked);
             return post;
         }).collect(Collectors.toList());
+    }
+
+    private Set<HashTagEntity> getHashTagEntities(String content, Long postId) {
+        return hashTagService.manage(content, postId).stream()
+                .map(dto -> modelMapper.map(dto, HashTagEntity.class)).collect(Collectors.toSet());
     }
 }
