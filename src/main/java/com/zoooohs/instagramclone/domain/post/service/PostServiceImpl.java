@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,6 +28,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
@@ -41,6 +43,10 @@ public class PostServiceImpl implements PostService {
     @Transactional
     @Override
     public PostDto.Post create(PostDto.Post postDto, List<MultipartFile> files, UserDto userDto) {
+        // 이미지가 아니면 throw
+        files.stream().map(MultipartFile::getContentType).filter(Predicate.not(this::isImage)).findAny().ifPresent(e -> {
+            throw new ZooooException(ErrorCode.INVALID_FILE_TYPE);
+        });
         List<String> photoPaths = this.storageService.store(files);
         Set<PhotoEntity> photos = photoPaths.stream().map(path -> PhotoEntity.builder().path(path).build()).collect(Collectors.toSet());
         UserEntity user = this.modelMapper.map(userDto, UserEntity.class);
@@ -50,6 +56,10 @@ public class PostServiceImpl implements PostService {
         post.setHashTags(getHashTagEntities(post.getDescription(), post.getId()));
         post = this.postRepository.save(post);
         return this.modelMapper.map(post, PostDto.Post.class);
+    }
+
+    private boolean isImage(String fileType) {
+        return fileType.equals(MediaType.IMAGE_JPEG_VALUE) || fileType.equals(MediaType.IMAGE_PNG_VALUE);
     }
 
     @Override

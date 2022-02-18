@@ -71,25 +71,41 @@ public class PostServiceTest {
         PostEntity postEntity = this.modelMapper.map(post, PostEntity.class);
         postEntity.setId(1L);
 
-        List<MultipartFile> files = new ArrayList<>();
+        List<MultipartFile> textFiles = new ArrayList<>();
+        List<MultipartFile> imageFiles = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             MockMultipartFile file =
                     new MockMultipartFile("files", String.format("file_%d.txt", i),
                             MediaType.TEXT_PLAIN_VALUE, String.format("some contents %d", i).getBytes());
-            files.add(file);
+            MockMultipartFile imageFile =
+                    new MockMultipartFile("files", String.format("file_%d.jpg", i),
+                            MediaType.IMAGE_JPEG_VALUE, String.format("some contents %d", i).getBytes());
+            textFiles.add(file);
+            imageFiles.add(imageFile);
         }
-        List<String> photoPaths = files.stream().map(file -> UUID.randomUUID().toString()).collect(Collectors.toList());
+
+        List<String> photoPaths = imageFiles.stream().map(file -> UUID.randomUUID().toString()).collect(Collectors.toList());
         Set<PhotoEntity> photos = photoPaths.stream().map(path -> PhotoEntity.builder().path(path).build()).collect(Collectors.toSet());
         postEntity.setPhotos(photos);
 
-        given(storageService.store(eq(files))).willReturn(photoPaths);
+        given(storageService.store(eq(imageFiles))).willReturn(photoPaths);
         given(postRepository.save(any(PostEntity.class))).willReturn(postEntity);
 
-        PostDto.Post actual = this.postService.create(post, files, user);
+        PostDto.Post actual = this.postService.create(post, imageFiles, user);
 
         assertTrue(actual.getId() != null);
         assertEquals(post.getDescription(), actual.getDescription());
-        assertEquals(files.size(), actual.getPhotos().size());
+        assertEquals(textFiles.size(), actual.getPhotos().size());
+
+        // 400 bad request test
+        try {
+            this.postService.create(post, textFiles, user);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.INVALID_FILE_TYPE, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
     }
 
     @DisplayName("userId 자신과 팔로워들의 게시글 dto list 반환")
