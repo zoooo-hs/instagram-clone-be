@@ -77,6 +77,7 @@ public class PostServiceImpl implements PostService {
         return makePostDto(postEntities, userId);
     }
 
+    @Transactional
     @Override
     public PostDto.Post updateDescription(Long postId, PostDto.Post post, UserDto userDto) {
         PostEntity postEntity = this.postRepository.findById(postId).orElseThrow(() -> new ZooooException(ErrorCode.POST_NOT_FOUND));
@@ -90,6 +91,7 @@ public class PostServiceImpl implements PostService {
         return result;
     }
 
+    @Transactional
     @Override
     public Long deleteById(Long postId, Long userId) {
         PostEntity postEntity = this.postRepository.findByIdAndUserId(postId, userId);

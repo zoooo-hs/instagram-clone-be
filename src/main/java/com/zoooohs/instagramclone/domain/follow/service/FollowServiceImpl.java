@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @RequiredArgsConstructor
 public class FollowServiceImpl implements FollowService {
@@ -19,6 +21,7 @@ public class FollowServiceImpl implements FollowService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
 
+    @Transactional
     @Override
     public FollowDto follow(Long followUserId, Long userId) {
         if (followUserId.equals(userId)) {
@@ -37,6 +40,7 @@ public class FollowServiceImpl implements FollowService {
         return modelMapper.map(follow, FollowDto.class);
     }
 
+    @Transactional
     @Override
     public Long unfollow(Long followUserId, Long userId) {
         if (followUserId.equals(userId)) {

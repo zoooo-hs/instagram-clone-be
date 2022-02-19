@@ -14,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ public class PhotoServiceImpl implements PhotoService {
     private final StorageService storageService;
     private final ModelMapper modelMapper;
 
+    @Transactional
     @Override
     public List<PhotoDto.Photo> saveAll(List<String> photoIds) {
         List<PhotoEntity> photoEntities = photoIds.stream().map(id -> {
@@ -42,6 +44,7 @@ public class PhotoServiceImpl implements PhotoService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public PhotoDto.Photo uploadProfile(MultipartFile photo, Long userId) {
         if (!photo.getContentType().equals(MediaType.IMAGE_JPEG_VALUE) && !photo.getContentType().equals(MediaType.IMAGE_PNG_VALUE)) {

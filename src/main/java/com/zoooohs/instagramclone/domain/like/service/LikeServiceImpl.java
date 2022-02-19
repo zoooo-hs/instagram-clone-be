@@ -18,6 +18,8 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Service
 @RequiredArgsConstructor
 public class LikeServiceImpl implements LikeService {
@@ -28,6 +30,7 @@ public class LikeServiceImpl implements LikeService {
     private final CommentLikeRepository commentLikeRepository;
     private final ModelMapper modelMapper;
 
+    @Transactional
     @Override
     public PostLikeDto likePost(Long postId, UserDto userDto) {
         PostEntity post = postRepository.findById(postId).orElseThrow(() -> new ZooooException(ErrorCode.POST_NOT_FOUND));
@@ -40,6 +43,7 @@ public class LikeServiceImpl implements LikeService {
         return modelMapper.map(like, PostLikeDto.class);
     }
 
+    @Transactional
     @Override
     public Long unlikePost(Long postId, UserDto userDto) {
         PostLikeEntity like = postLikeRepository.findByPostIdAndUserId(postId, userDto.getId());
@@ -51,6 +55,7 @@ public class LikeServiceImpl implements LikeService {
         return likeId;
     }
 
+    @Transactional
     @Override
     public CommentLikeDto likeComment(Long commentId, UserDto userDto) {
         CommentEntity comment = commentRepository.findById(commentId).orElseThrow(() -> new ZooooException(ErrorCode.COMMENT_NOT_FOUND));
@@ -63,6 +68,7 @@ public class LikeServiceImpl implements LikeService {
         return modelMapper.map(commentLike, CommentLikeDto.class);
     }
 
+    @Transactional
     @Override
     public Long unlikeComment(Long commentId, UserDto userDto) {
         CommentLikeEntity commentLike = commentLikeRepository.findByCommentIdAndUserId(commentId, userDto.getId());

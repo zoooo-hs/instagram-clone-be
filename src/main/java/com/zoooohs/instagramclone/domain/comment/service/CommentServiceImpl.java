@@ -16,7 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,6 +53,7 @@ public class CommentServiceImpl implements CommentService {
         }).collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public CommentDto updateComment(Long commentId, CommentDto commentDto, UserDto userDto) {
         CommentEntity comment = this.commentRepository.findByIdAndUserId(commentId, userDto.getId());
@@ -64,6 +65,7 @@ public class CommentServiceImpl implements CommentService {
         return this.modelMapper.map(comment, CommentDto.class);
     }
 
+    @Transactional
     @Override
     public Long deleteById(Long commentId, UserDto userDto) {
         CommentEntity comment = this.commentRepository.findByIdAndUserId(commentId, userDto.getId());
