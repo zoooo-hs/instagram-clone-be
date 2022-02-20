@@ -5,16 +5,32 @@ TDD 공부도 하고 Spring 프로젝트를 계속 손에 익혀본다.
 
 ## 시작하기 앞서
 - 환경 변수 추가
-  - DB_URL
-    - DB 연결 URL
-  - DB_PORT
-    - DB 연결 PORT
-  - DB_USE
-    - database 이름
-  - DB_ID
-    - database 사용자 ID
-  - DB_PASSWORD
-    - database 사용자 PASSWORD
+  - 필수 입력
+    - ACCESS_TOKEN_KEY
+      - access token 발급용 secret key
+      - 임의 값 입력
+    - REFRESH_TOKEN_KEY
+      - refresh token 발급용 secret key
+      - 임의 값 입력
+    - DB_URL
+      - DB 연결 URL
+    - DB_PORT
+      - DB 연결 PORT
+    - DB_USE
+      - database 이름
+    - DB_ID
+      - database 사용자 ID
+    - DB_PASSWORD
+      - database 사용자 PASSWORD
+  - 선택 입력
+    - ACCESS_TOKEN_VALID_TIME
+      - access token 만료 시간
+      - millisecond 단위
+      - 기본 값 1일
+    - REFRESH_TOKEN_VALID_TIME
+      - refresh token 만료 시간
+      - millisecond 단위
+      - 기본 값 5일
 - 파일 추가 및 변경
     - resources/application-aws.yaml
         ```yaml

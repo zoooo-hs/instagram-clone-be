@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 //@Service
 public class FileSystemStorageServiceImpl implements StorageService {
 
-    @Value("${storage.filesystem}")
+    @Value("${instagram-clone.storage.filesystem}")
     private String bucketName;
 
     @Override

@@ -24,5 +24,13 @@ logging:
         org:
           hibernate: info
 
-storage:
-  filesystem: ${STORAGE_FS}
+instagram-clone:
+  storage:
+    filesystem: ${STORAGE_FS}
+  jwt:
+    access-token:
+      key: ${ACCESS_TOKEN_KEY:"access"}
+      valid-time: ${ACCESS_TOKEN_VALID_TIME:86400000} # default: 1 day
+    refresh-token:
+      key: ${REFRESH_TOKEN_KEY:"refresh"}
+      valid-time: ${REFRESH_TOKEN_VALID_TIME:432000000} # default: 5 days
