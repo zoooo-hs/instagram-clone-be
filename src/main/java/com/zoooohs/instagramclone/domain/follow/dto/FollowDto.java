@@ -1,6 +1,7 @@
 package com.zoooohs.instagramclone.domain.follow.dto;
 
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,6 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class FollowDto {
     private Long id;
+
+    @Schema(description = "팔로우한 유저")
     private UserDto.Info followUser;
 
     @Builder
