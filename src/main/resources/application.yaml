@@ -29,7 +29,7 @@ logging:
           hibernate: info
 
 instagram-clone:
-  version: 0.0.1
+  version: 1.0.0
   storage:
     filesystem: ${STORAGE_FS}
   jwt:

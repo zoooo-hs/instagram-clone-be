@@ -55,6 +55,7 @@ TDD 공부도 하고 Spring 프로젝트를 계속 손에 익혀본다.
         ```
 
 ## 변경사항 및 TODO
+- [2022/02/21 (1.0.0 릴리즈)](https://dogfooter219.notion.site/1-0-0-e4307c1f5b1c4b5baf0d9754dc442284)
 - [2022/02/12](https://dogfooter219.notion.site/2022-02-3-3c0bd58d436a462b94880dcf3a366e33)
 - [2022/02/08](https://dogfooter219.notion.site/2022-02-2-b66133f5680a4094bba04662b2975ad8)
 - [2022/02/01](https://dogfooter219.notion.site/2022-02-1-7ebcb5300811407da8f3bd8dc6c13490)
