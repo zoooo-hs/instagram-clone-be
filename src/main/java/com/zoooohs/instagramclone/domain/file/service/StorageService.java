@@ -8,4 +8,10 @@ public interface StorageService {
     List<String> store(List<MultipartFile> files);
 
     void setBucketName(String bucketName);
+
+    void delete(String path);
+
+    Boolean exists(String path);
+
+    void deleteAll(List<String> paths);
 }

@@ -1,7 +1,13 @@
 package com.zoooohs.instagramclone.domain.post.service;
 
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
+import com.zoooohs.instagramclone.domain.common.model.SearchModel;
+import com.zoooohs.instagramclone.domain.common.type.SearchKeyType;
 import com.zoooohs.instagramclone.domain.file.service.StorageService;
+import com.zoooohs.instagramclone.domain.follow.entity.FollowEntity;
+import com.zoooohs.instagramclone.domain.follow.repository.FollowRepository;
+import com.zoooohs.instagramclone.domain.hashtag.service.HashTagService;
+import com.zoooohs.instagramclone.domain.like.entity.PostLikeEntity;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
@@ -11,6 +17,7 @@ import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.exception.ErrorCode;
 import com.zoooohs.instagramclone.exception.ZooooException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -23,10 +30,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,7 +48,11 @@ public class PostServiceTest {
     @Mock
     PostRepository postRepository;
     @Mock
+    FollowRepository followRepository;
+    @Mock
     StorageService storageService;
+    @Mock
+    HashTagService hashTagService;
 
     PostDto.Post post;
     UserDto user;
@@ -52,10 +60,10 @@ public class PostServiceTest {
     @BeforeEach
     public void setUp() {
         MockitoAnnotations.openMocks(this);
-        postService = new PostServiceImpl(postRepository, modelMapper, storageService);
+        postService = new PostServiceImpl(postRepository, followRepository, modelMapper, storageService, hashTagService);
         user = UserDto.builder().id(1L).build();
         UserDto.Feed userFeed = this.modelMapper.map(user, UserDto.Feed.class);
-        post = PostDto.Post.builder().description("some desc").user(userFeed).build();
+        post = PostDto.Post.builder().description("some desc").user(userFeed).photos(new ArrayList<>()).build();
     }
 
     @Test
@@ -63,25 +71,102 @@ public class PostServiceTest {
         PostEntity postEntity = this.modelMapper.map(post, PostEntity.class);
         postEntity.setId(1L);
 
-        List<MultipartFile> files = new ArrayList<>();
+        List<MultipartFile> textFiles = new ArrayList<>();
+        List<MultipartFile> imageFiles = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             MockMultipartFile file =
                     new MockMultipartFile("files", String.format("file_%d.txt", i),
                             MediaType.TEXT_PLAIN_VALUE, String.format("some contents %d", i).getBytes());
-            files.add(file);
+            MockMultipartFile imageFile =
+                    new MockMultipartFile("files", String.format("file_%d.jpg", i),
+                            MediaType.IMAGE_JPEG_VALUE, String.format("some contents %d", i).getBytes());
+            textFiles.add(file);
+            imageFiles.add(imageFile);
         }
-        List<String> photoPaths = files.stream().map(file -> UUID.randomUUID().toString()).collect(Collectors.toList());
-        List<PhotoEntity> photos = photoPaths.stream().map(path -> PhotoEntity.builder().path(path).build()).collect(Collectors.toList());
+
+        List<String> photoPaths = imageFiles.stream().map(file -> UUID.randomUUID().toString()).collect(Collectors.toList());
+        Set<PhotoEntity> photos = photoPaths.stream().map(path -> PhotoEntity.builder().path(path).build()).collect(Collectors.toSet());
         postEntity.setPhotos(photos);
 
-        given(storageService.store(eq(files))).willReturn(photoPaths);
+        given(storageService.store(eq(imageFiles))).willReturn(photoPaths);
         given(postRepository.save(any(PostEntity.class))).willReturn(postEntity);
 
-        PostDto.Post actual = this.postService.create(post, files, user);
+        PostDto.Post actual = this.postService.create(post, imageFiles, user);
 
         assertTrue(actual.getId() != null);
         assertEquals(post.getDescription(), actual.getDescription());
-        assertEquals(files.size(), actual.getPhotos().size());
+        assertEquals(textFiles.size(), actual.getPhotos().size());
+
+        // 400 bad request test
+        try {
+            this.postService.create(post, textFiles, user);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.INVALID_FILE_TYPE, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @DisplayName("userId 자신과 팔로워들의 게시글 dto list 반환")
+    @Test
+    public void getFeedsTest() {
+        List<PostEntity> posts = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            PostEntity post = new PostEntity();
+            post.setDescription("desc"+i);
+            post.setUser(UserEntity.builder().id(user.getId()).build());
+            posts.add(post);
+        }
+
+        List<FollowEntity> followEntities = new ArrayList<>();
+
+        SearchModel searchModel = new SearchModel();
+        searchModel.setIndex(0);
+        searchModel.setSize(20);
+
+
+        given(followRepository.findByUserId(eq(user.getId()))).willReturn(followEntities);
+        given(this.postRepository.findAllByUserId(anyList(), eq(PageRequest.of(0, 20)))).willReturn(posts.subList(0, 20));
+
+        List<PostDto.Post> actual = postService.getFeeds(user.getId(), searchModel);
+
+
+        assertTrue(20 >= actual.size());
+        assertTrue(0 < actual.size());
+    }
+
+    @DisplayName("userId 자신과 팔로워들의 게시글 dto list 반환")
+    @Test
+    public void getFeedsByHashTagTest() {
+        List<PostEntity> posts = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            PostEntity post = new PostEntity();
+            post.setDescription("#hello desc"+i);
+            post.setUser(UserEntity.builder().id(user.getId()).build());
+            posts.add(post);
+        }
+
+        SearchModel searchModel = new SearchModel();
+        searchModel.setKeyword("#hello");
+        searchModel.setSearchKey(SearchKeyType.HASH_TAG);
+        searchModel.setIndex(0);
+        searchModel.setSize(20);
+
+        given(postRepository.findAllByTag(eq("#hello"), eq(PageRequest.of(0, 20)))).willReturn(posts.subList(0, 20));
+
+        List<PostDto.Post> actual = postService.getFeeds(user.getId(), searchModel);
+
+        searchModel.setSearchKey(SearchKeyType.NAME);
+        List<PostDto.Post> actualZeroSize = postService.getFeeds(user.getId(), searchModel);
+
+
+        assertTrue(20 >= actual.size());
+        assertTrue(0 < actual.size());
+        for (int i = 0; i < actual.size(); i++) {
+            assertTrue(actual.get(i).getDescription().contains("#hello"));
+        }
+        assertEquals(0, actualZeroSize.size());
     }
 
     @Test
@@ -115,24 +200,31 @@ public class PostServiceTest {
             PostEntity post = new PostEntity();
             post.setDescription("desc"+i);
             post.setUser(userEntity);
+            PostLikeEntity like = PostLikeEntity.builder().user(userEntity).post(post).build();
+            Set<PostLikeEntity> likes = new HashSet();
+            likes.add(like);
+            post.setLikes(likes);
+
             posts.add(post);
         }
 
         given(this.postRepository.findByUserId(eq(user.getId()), eq(PageRequest.of(0, 20)))).willReturn(posts.subList(0, 20));
 
-        List<PostDto.Post> actual = this.postService.findByUserId(user.getId(), PageModel.builder().index(0).size(20).build());
+        List<PostDto.Post> actual = this.postService.findByUserId(user.getId(), PageModel.builder().index(0).size(20).build(), user.getId());
 
         assertTrue(20 >= actual.size());
         assertTrue(0 < actual.size());
         for (PostDto.Post p: actual) {
             assertTrue(user.getId() == p.getUser().getId());
+            assertNotNull(p.getLikeCount());
+            assertNotNull(p.isLiked());
         }
     }
 
     @Test
     public void updateDescriptionTest() {
         UserDto.Feed userFeed = this.modelMapper.map(user, UserDto.Feed.class);
-        PostDto.Post post2 = PostDto.Post.builder().user(userFeed).description("another desc").build();
+        PostDto.Post post2 = PostDto.Post.builder().user(userFeed).description("another desc").photos(new ArrayList<>()).build();
 
         PostEntity postEntity1 = this.modelMapper.map(post, PostEntity.class);
         postEntity1.setId(1L);

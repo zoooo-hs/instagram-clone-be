@@ -4,9 +4,12 @@ import com.zoooohs.instagramclone.domain.comment.dto.CommentDto;
 import com.zoooohs.instagramclone.domain.comment.entity.CommentEntity;
 import com.zoooohs.instagramclone.domain.comment.repository.CommentRepository;
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
+import com.zoooohs.instagramclone.domain.like.entity.CommentLikeEntity;
+import com.zoooohs.instagramclone.domain.like.repository.CommentLikeRepository;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
+import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.exception.ErrorCode;
 import com.zoooohs.instagramclone.exception.ZooooException;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,9 +20,9 @@ import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
@@ -35,6 +38,8 @@ public class CommentServiceTest {
     CommentRepository commentRepository;
     @Mock
     PostRepository postRepository;
+    @Mock
+    CommentLikeRepository commentLikeRepository;
     private UserDto userDto;
     private Long postId;
     private CommentDto commentDto;
@@ -44,7 +49,7 @@ public class CommentServiceTest {
 
     @BeforeEach
     public void setUp() {
-        commentService = new CommentServiceImpl(modelMapper, commentRepository, postRepository);
+        commentService = new CommentServiceImpl(modelMapper, commentRepository, commentLikeRepository, postRepository);
 
         userDto = UserDto.builder().id(1L).build();
         postId = 1L;
@@ -86,12 +91,30 @@ public class CommentServiceTest {
     public void getPostCommentListTest() {
         Long postId = 1L;
 
-        given(this.postRepository.findById(postId)).willReturn(Optional.ofNullable(post));
+        ArrayList<CommentEntity> commentEntities = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            CommentEntity commentEntity = CommentEntity.builder()
+                    .content("content " + i)
+                    .user(UserEntity.builder().name("user"+1).id((long) i).build())
+                    .build();
+            CommentLikeEntity commentLike = new CommentLikeEntity();
+            commentLike.setComment(commentEntity);
+            commentLike.setUser(UserEntity.builder().id(userDto.getId()).build());
+            commentEntities.add(commentEntity);
+            Set<CommentLikeEntity>  likes = new HashSet<>();
+            likes.add(commentLike);
+            commentEntity.setLikes(likes);
+        }
 
-        List<CommentDto> actual = this.commentService.getPostCommentList(postId, pageModel);
+        given(this.postRepository.findById(postId)).willReturn(Optional.ofNullable(post));
+        given(commentRepository.findByPostId(eq(postId), any(Pageable.class))).willReturn(commentEntities);
+
+        List<CommentDto> actual = this.commentService.getPostCommentList(postId, pageModel, userDto.getId());
 
         assertNotEquals(null, actual);
         assertTrue(actual.size() <= pageModel.getSize());
+        assertNotNull(actual.get(0).getLikeCount());
+        assertTrue(actual.get(0).isLiked());
     }
 
     @DisplayName("없는 postId의 경우 POST_NOT_FOUND Exception throw 하는 service테스트")
@@ -102,7 +125,7 @@ public class CommentServiceTest {
         given(this.postRepository.findById(postId)).willReturn(Optional.ofNullable(null));
 
         try {
-            this.commentService.getPostCommentList(postId, pageModel);
+            this.commentService.getPostCommentList(postId, pageModel, 1L);
             fail();
         } catch (ZooooException e) {
             assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());

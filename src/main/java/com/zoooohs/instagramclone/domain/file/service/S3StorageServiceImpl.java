@@ -2,6 +2,7 @@ package com.zoooohs.instagramclone.domain.file.service;
 
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.CannedAccessControlList;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.zoooohs.instagramclone.exception.ErrorCode;
@@ -46,5 +47,47 @@ public class S3StorageServiceImpl implements StorageService {
 
     public void setBucketName(String bucketName) {
         this.bucketName = bucketName;
+    }
+
+    @Override
+    public void delete(String path) {
+        // 없는 파일 삭제 호출 시 내부 로그라도 남겨야 할 것 같음
+        if (exists(path)) {
+            String fileName = getFileName(path);
+            amazonS3Client.deleteObject(bucketName, fileName);
+        }
+    }
+
+    @Override
+    public Boolean exists(String path) {
+        String fileName = getFileName(path);
+        if (fileName == null) return false;
+        return amazonS3Client.doesObjectExist(bucketName, fileName);
+    }
+
+    @Override
+    public void deleteAll(List<String> paths) {
+        DeleteObjectsRequest request = new DeleteObjectsRequest(bucketName);
+        List<DeleteObjectsRequest.KeyVersion> keys = paths.stream()
+                .map(this::getFileName).map(DeleteObjectsRequest.KeyVersion::new).collect(Collectors.toList());
+        request.setKeys(keys);
+        try {
+            amazonS3Client.deleteObjects(request);
+        } catch (Exception e) {
+            // TODO: AOP log
+            e.printStackTrace();
+        }
+    }
+
+    private String getFileName(String path) {
+        String [] temp = path.split("amazonaws\\.com/");
+        if (temp.length != 2) {
+            temp = path.split(bucketName + "/");
+        }
+        if (temp.length != 2) {
+            return null;
+        }
+        String fileName= temp[1];
+        return fileName;
     }
 }

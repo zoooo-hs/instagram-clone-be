@@ -1,11 +1,14 @@
 package com.zoooohs.instagramclone.domain.user.service;
 
+import com.zoooohs.instagramclone.domain.common.model.SearchModel;
+import com.zoooohs.instagramclone.domain.common.type.SearchKeyType;
 import com.zoooohs.instagramclone.domain.photo.dto.PhotoDto;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -13,10 +16,14 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.PageRequest;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,7 +56,7 @@ public class UserServiceTest {
         assertEquals(id, actual.getId());
         assertEquals(name, actual.getName());
         assertEquals(bio, actual.getBio());
-        assertEquals(profilePhotoPath, actual.getProfilePhoto().getPath());
+        assertEquals(profilePhotoPath, actual.getPhoto().getPath());
     }
 
     private UserEntity makeUserEntity(Long id, String name, String bio, String profilePhotoPath) {
@@ -60,7 +67,7 @@ public class UserServiceTest {
         userEntity.setId(id);
         userEntity.setName(name);
         userEntity.setBio(bio);
-        userEntity.setProfilePhoto(photoEntity);
+        userEntity.setPhoto(photoEntity);
         return userEntity;
     }
 
@@ -84,6 +91,34 @@ public class UserServiceTest {
         assertEquals(changedBio, actual.getBio());
     }
 
+    @DisplayName("keyword, search_key=name, index, size 입력받아 keyword와 유사한 이름을 가진 user list 반환")
+    @Test
+    public void getUsersTest() {
+        SearchModel searchModel = new SearchModel(0, 20, "aa", SearchKeyType.NAME);
+
+        List<UserEntity> users = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            UserEntity user = UserEntity.builder().id((long)i).name("aaa").build();
+            users.add(user);
+        }
+
+        given(userRepository.findByNameIgnoreCaseContaining("aa", PageRequest.of(0, 20))).willReturn(users);
+
+        // 여기까지 Optional일 필요가 있나 싶긴하다
+        Optional<List<UserDto.Info>> maybeUsers = Optional.ofNullable(userService.getUsers(searchModel));
+
+        searchModel.setSearchKey(SearchKeyType.HASH_TAG);
+        Optional<List<UserDto.Info>> maybeZero = Optional.ofNullable(userService.getUsers(searchModel));
+
+        long count = maybeUsers.map(List::stream)
+                .map(actuals -> actuals.filter(actual -> actual.getName().contains(searchModel.getKeyword())))
+                .map(Stream::count)
+                .orElse((long) 0);
+
+        assertEquals(users.size(), count);
+        assertEquals(0, maybeZero.map(List::size).orElse(0));
+    }
+
     private UserDto.Info makeUserDto(Long id, String name, String bio, String profilePhotoPath) {
         UserDto.Info userDto = new UserDto.Info();
         userDto.setId(id);
@@ -91,7 +126,7 @@ public class UserServiceTest {
         userDto.setName(name);
         PhotoDto.Photo photoDto = new PhotoDto.Photo();
         photoDto.setPath(profilePhotoPath);
-        userDto.setProfilePhoto(photoDto);
+        userDto.setPhoto(photoDto);
         return userDto;
     }
 }

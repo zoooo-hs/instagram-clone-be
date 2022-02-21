@@ -19,6 +19,8 @@ spring:
     multipart:
       maxFileSize: 10MB
       maxRequestSize: 10MB
+  jackson:
+    property-naming-strategy: SNAKE_CASE
 
 
 logging:
@@ -26,5 +28,14 @@ logging:
         org:
           hibernate: info
 
-storage:
-  filesystem: ${STORAGE_FS}
+instagram-clone:
+  version: 1.0.0
+  storage:
+    filesystem: ${STORAGE_FS}
+  jwt:
+    access-token:
+      key: ${ACCESS_TOKEN_KEY}
+      valid-time: ${ACCESS_TOKEN_VALID_TIME:86400000} # default: 1 day
+    refresh-token:
+      key: ${REFRESH_TOKEN_KEY}
+      valid-time: ${REFRESH_TOKEN_VALID_TIME:432000000} # default: 5 days

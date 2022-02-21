@@ -7,7 +7,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -20,35 +20,35 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
 
-@RequiredArgsConstructor
 @Component
+@RequiredArgsConstructor
 public class JwtTokenProvider {
 
-    // TODO: key 환경 변수화 혹은 은닉 + 주기적 변경
-    private String accessTokenKey = "access_key_secret";
-    private String refreshTokenKey = "refresh_key_secret";
+    @Value("${instagram-clone.jwt.access-token.key}")
+    private String refreshTokenKey = "refresh";
+    @Value("${instagram-clone.jwt.refresh-token.key}")
+    private String accessTokenKey = "access";
 
-    // 10분
-    private long accessTokenValidTime = 10*60*1000;
-    // 2일
-    private long refreshTokenValidTime = 2*24*60*60*1000;
+    @Value("${instagram-clone.jwt.access-token.valid-time}")
+    private long accessTokenValidTime = 66400000;
+    @Value("${instagram-clone.jwt.refresh-token.valid-time}")
+    private long refreshTokenValidTime = 232000000;
 
     private final UserDetailsService userDetailsService;
     private final ModelMapper modelMapper;
 
     @PostConstruct
     protected void init() {
-        accessTokenKey = Base64.getEncoder().encodeToString(accessTokenKey.getBytes());
         refreshTokenKey = Base64.getEncoder().encodeToString(refreshTokenKey.getBytes());
+        accessTokenKey = Base64.getEncoder().encodeToString(accessTokenKey.getBytes());
     }
 
-
     public String createAccessToken(String userId) {
-        return createToken(userId, accessTokenValidTime, accessTokenKey);
+        return createToken(userId, accessTokenValidTime, refreshTokenKey);
     }
 
     public String createRefreshToken(String userId) {
-        return createToken(userId, refreshTokenValidTime, refreshTokenKey);
+        return createToken(userId, refreshTokenValidTime, accessTokenKey);
     }
 
     private String createToken(String userId, long accessTokenValidTime, String accessTokenKey) {
@@ -68,11 +68,11 @@ public class JwtTokenProvider {
     }
 
     public String getAccessTokenUserId(String token) {
-        return getUserIdFromToken(token, accessTokenKey);
+        return getUserIdFromToken(token, refreshTokenKey);
     }
 
     public String getRefreshTokenUserId(String token) {
-        return getUserIdFromToken(token, refreshTokenKey);
+        return getUserIdFromToken(token, accessTokenKey);
     }
 
     private String getUserIdFromToken(String token, String accessTokenKey) {
@@ -88,11 +88,11 @@ public class JwtTokenProvider {
     }
 
     public boolean validAccessToken(String jwtToken) {
-        return isValidToken(jwtToken, accessTokenKey);
+        return isValidToken(jwtToken, refreshTokenKey);
     }
 
     public boolean validRefreshToken(String jwtToken) {
-        return isValidToken(jwtToken, refreshTokenKey);
+        return isValidToken(jwtToken, accessTokenKey);
     }
 
     private boolean isValidToken(String jwtToken, String refreshTokenKey) {

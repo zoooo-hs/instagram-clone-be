@@ -1,6 +1,7 @@
 package com.zoooohs.instagramclone.domain.auth.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.zoooohs.instagramclone.configuration.JwtTokenProvider;
 import com.zoooohs.instagramclone.domain.auth.dto.AuthDto;
 import com.zoooohs.instagramclone.domain.auth.service.AuthService;
@@ -89,6 +90,8 @@ public class AuthControllerTest {
 
     @Test
     public void refreshTest() throws Exception {
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+
         String url = "/auth/refresh";
         AuthDto.Token token = getToken();
 
@@ -96,7 +99,7 @@ public class AuthControllerTest {
 
         mockMvc.perform(MockMvcRequestBuilders.post(url)
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(token)))
+                .content(objectMapper.writeValueAsString(token)))
                 .andExpect(MockMvcResultMatchers.status().isOk());
     }
 

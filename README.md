@@ -5,16 +5,32 @@ TDD 공부도 하고 Spring 프로젝트를 계속 손에 익혀본다.
 
 ## 시작하기 앞서
 - 환경 변수 추가
-  - DB_URL
-    - DB 연결 URL
-  - DB_PORT
-    - DB 연결 PORT
-  - DB_USE
-    - database 이름
-  - DB_ID
-    - database 사용자 ID
-  - DB_PASSWORD
-    - database 사용자 PASSWORD
+  - 필수 입력
+    - ACCESS_TOKEN_KEY
+      - access token 발급용 secret key
+      - 임의 값 입력
+    - REFRESH_TOKEN_KEY
+      - refresh token 발급용 secret key
+      - 임의 값 입력
+    - DB_URL
+      - DB 연결 URL
+    - DB_PORT
+      - DB 연결 PORT
+    - DB_USE
+      - database 이름
+    - DB_ID
+      - database 사용자 ID
+    - DB_PASSWORD
+      - database 사용자 PASSWORD
+  - 선택 입력
+    - ACCESS_TOKEN_VALID_TIME
+      - access token 만료 시간
+      - millisecond 단위
+      - 기본 값 1일
+    - REFRESH_TOKEN_VALID_TIME
+      - refresh token 만료 시간
+      - millisecond 단위
+      - 기본 값 5일
 - 파일 추가 및 변경
     - resources/application-aws.yaml
         ```yaml
@@ -39,6 +55,7 @@ TDD 공부도 하고 Spring 프로젝트를 계속 손에 익혀본다.
         ```
 
 ## 변경사항 및 TODO
+- [2022/02/21 (1.0.0 릴리즈)](https://dogfooter219.notion.site/1-0-0-e4307c1f5b1c4b5baf0d9754dc442284)
 - [2022/02/12](https://dogfooter219.notion.site/2022-02-3-3c0bd58d436a462b94880dcf3a366e33)
 - [2022/02/08](https://dogfooter219.notion.site/2022-02-2-b66133f5680a4094bba04662b2975ad8)
 - [2022/02/01](https://dogfooter219.notion.site/2022-02-1-7ebcb5300811407da8f3bd8dc6c13490)

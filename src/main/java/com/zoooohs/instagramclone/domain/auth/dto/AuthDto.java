@@ -1,6 +1,7 @@
 package com.zoooohs.instagramclone.domain.auth.dto;
 
 import com.zoooohs.instagramclone.util.Patterns;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
 import javax.validation.constraints.Email;
@@ -10,6 +11,7 @@ import javax.validation.constraints.Size;
 
 public class AuthDto {
 
+    @Schema(name = "AuthDto.SignUp")
     @Data
     @NoArgsConstructor
     public static class SignUp {
@@ -31,6 +33,7 @@ public class AuthDto {
         }
     }
 
+    @Schema(name = "AuthDto.SignIn")
     @Data
     @NoArgsConstructor
     public static class SignIn {
@@ -47,6 +50,7 @@ public class AuthDto {
         }
     }
 
+    @Schema(name = "AuthDto.Token")
     @Getter
     @Setter
     @NoArgsConstructor

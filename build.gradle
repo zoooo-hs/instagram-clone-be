@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.zoooohs'
-version = '0.0.1-SNAPSHOT'
+version = '1.0.0'
 sourceCompatibility = '11'
 
 configurations {
@@ -35,6 +35,8 @@ dependencies {
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation group: 'org.mockito', name: 'mockito-inline', version: '4.0.0'
 	testImplementation 'io.findify:s3mock_2.13:0.2.6'
+	implementation 'org.springdoc:springdoc-openapi-ui:1.6.6'
+	implementation 'org.springdoc:springdoc-openapi-security:1.6.6'
 }
 
 test {

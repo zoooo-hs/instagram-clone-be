@@ -81,6 +81,7 @@ public class CommentControllerTest {
 
     @DisplayName("GET /post/{postId}/comment 입력, comment 리스트 반환, 없는 postid의 경우 404")
     @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L)
     public void getPostCommentListTest() throws Exception {
         Long postId = 1L;
         String url = String.format("/post/%d/comment", postId);
@@ -90,20 +91,27 @@ public class CommentControllerTest {
         for (int i = 0; i < 20; i++) {
             CommentDto commentDto = CommentDto.builder()
                     .content("content " + i)
-                    .user(UserDto.Feed.builder().name("user"+1).id((long) i).build()).build();
+                    .user(UserDto.Feed.builder().name("user"+1).id((long) i).build())
+                    .likeCount((long) 0)
+                    .isLiked(false)
+                    .build();
+            commentDtos.add(commentDto);
         }
 
         PageModel pageModel = PageModel.builder().index(0).size(20).build();
 
-        given(this.commentService.getPostCommentList(postId, pageModel)).willReturn(commentDtos);
-        given(this.commentService.getPostCommentList(eq(2L), any(PageModel.class))).willThrow(new ZooooException(ErrorCode.POST_NOT_FOUND));
+        given(this.commentService.getPostCommentList(eq(postId), any(PageModel.class), eq(1L))).willReturn(commentDtos);
+        given(this.commentService.getPostCommentList(eq(2L), any(PageModel.class), eq(1L))).willThrow(new ZooooException(ErrorCode.POST_NOT_FOUND));
 
         mockMvc.perform(get(url)
                         .param("index", "0")
                         .param("size", "20")
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", Matchers.hasSize(commentDtos.size())));
+                .andExpect(jsonPath("$", Matchers.hasSize(commentDtos.size())))
+                .andExpect(jsonPath("$[0].like_count", Matchers.instanceOf(Integer.class)))
+                .andExpect(jsonPath("$[0].liked", Matchers.instanceOf(Boolean.class)))
+        ;
 
         mockMvc.perform(get(url404))
                 .andExpect(status().isNotFound());

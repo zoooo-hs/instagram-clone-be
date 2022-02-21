@@ -1,21 +1,63 @@
 package com.zoooohs.instagramclone.domain.user.controller;
 
+import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.domain.user.service.UserService;
+import com.zoooohs.instagramclone.exception.ZooooExceptionResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
 public class UserController {
     private final UserService userService;
 
+    @Operation(summary = "사용자 정보 조회", description = "특정 사용자의 상세 정보를 조회한다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200", description = "조회 성공. 사용자 상세 정보 결과 반환",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.Info.class)) }
+            ),
+            @ApiResponse(
+                    responseCode = "404", description = "존재하지 않는 사용자",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ZooooExceptionResponse.class)) }
+            ),
+    })
     @GetMapping("/user/{userId}")
     public UserDto.Info getInfo(@PathVariable Long userId) {
         return this.userService.getInfo(userId);
     }
 
+    @Operation(summary = "사용자 리스트 조회", description = "사용자 리스트를 조회하거나, 이름으로 사용자 리스트 검색")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200", description = "조회 성공. 사용자 리스트 조회 결과 반환",
+                    content = { @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = UserDto.Info.class))) }
+            ),
+    })
+    @GetMapping("/user")
+    public List<UserDto.Info> getUsers(@ModelAttribute @Valid SearchModel searchModel) {
+        return userService.getUsers(searchModel);
+    }
+
+    // TODO: user Id를 받아서 작동하도록 변경해야함
+    @Operation(summary = "사용자 바이오 수정", description = "자신의 바이오 정보를 변경한다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200", description = "수정 성공. 수정 정보 결과 반환",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.Info.class)) }
+            ),
+    })
     @PatchMapping("/user/bio")
     public UserDto.Info updateBio(@RequestBody UserDto.Info userDto, @AuthenticationPrincipal UserDto authUserDto) {
         return this.userService.updateBio(userDto.getBio(), authUserDto);

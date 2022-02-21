@@ -4,6 +4,7 @@ import com.zoooohs.instagramclone.domain.comment.dto.CommentDto;
 import com.zoooohs.instagramclone.domain.comment.entity.CommentEntity;
 import com.zoooohs.instagramclone.domain.comment.repository.CommentRepository;
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
+import com.zoooohs.instagramclone.domain.like.repository.CommentLikeRepository;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
@@ -15,7 +16,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,7 @@ public class CommentServiceImpl implements CommentService {
 
     private final ModelMapper modelMapper;
     private final CommentRepository commentRepository;
+    private final CommentLikeRepository commentLikeRepository;
     private final PostRepository postRepository;
 
     @Transactional
@@ -40,12 +42,18 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
-    public List<CommentDto> getPostCommentList(Long postId, PageModel pageModel) {
+    public List<CommentDto> getPostCommentList(Long postId, PageModel pageModel, Long userId) {
         PostEntity post = this.postRepository.findById(postId).orElseThrow(() -> new ZooooException(ErrorCode.POST_NOT_FOUND));
         List<CommentEntity> comments = this.commentRepository.findByPostId(post.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
-        return comments.stream().map(entity -> this.modelMapper.map(entity, CommentDto.class)).collect(Collectors.toList());
+        return comments.stream().map(entity -> {
+            CommentDto dto = this.modelMapper.map(entity, CommentDto.class);
+            boolean isLiked = entity.getLikes().stream().filter(like -> like.getUser().getId().equals(userId)).findFirst().isPresent();
+            dto.isLiked(isLiked);
+            return dto;
+        }).collect(Collectors.toList());
     }
 
+    @Transactional
     @Override
     public CommentDto updateComment(Long commentId, CommentDto commentDto, UserDto userDto) {
         CommentEntity comment = this.commentRepository.findByIdAndUserId(commentId, userDto.getId());
@@ -57,6 +65,7 @@ public class CommentServiceImpl implements CommentService {
         return this.modelMapper.map(comment, CommentDto.class);
     }
 
+    @Transactional
     @Override
     public Long deleteById(Long commentId, UserDto userDto) {
         CommentEntity comment = this.commentRepository.findByIdAndUserId(commentId, userDto.getId());
