@@ -1,58 +1,115 @@
 # Instagram Clone Project (Backend)
 
-퇴근하고 뭐라도 해보려고 한다. 
-TDD 공부도 하고 Spring 프로젝트를 계속 손에 익혀본다.
+![Generic badge](https://img.shields.io/badge/version-1.0.0-green.svg)
 
-## 시작하기 앞서
-- 환경 변수 추가
-  - 필수 입력
-    - ACCESS_TOKEN_KEY
-      - access token 발급용 secret key
-      - 임의 값 입력
-    - REFRESH_TOKEN_KEY
-      - refresh token 발급용 secret key
-      - 임의 값 입력
-    - DB_URL
-      - DB 연결 URL
-    - DB_PORT
-      - DB 연결 PORT
-    - DB_USE
-      - database 이름
-    - DB_ID
-      - database 사용자 ID
-    - DB_PASSWORD
-      - database 사용자 PASSWORD
-  - 선택 입력
-    - ACCESS_TOKEN_VALID_TIME
-      - access token 만료 시간
-      - millisecond 단위
-      - 기본 값 1일
-    - REFRESH_TOKEN_VALID_TIME
-      - refresh token 만료 시간
-      - millisecond 단위
-      - 기본 값 5일
-- 파일 추가 및 변경
-    - resources/application-aws.yaml
-        ```yaml
-        cloud:
-            aws:
-              s3:
-                bucket: <S3_BUCKET_NAME>
-              region:
-                static: <S3_BUCKET_REGION>
-              stack:
-                auto: false
-              credentials:
-                instanceProfile: true
-        ```
-    - resources/application-credential.yaml
-        ```yaml
-        cloud:
-              aws:
-                credentials:
-                  accessKey: <S3_IAM_ACCESS_KEY>
-                  secretKey: <S3_IAM_SECRET_KEY> 
-        ```
+## 목차
+
+1. [프로젝트의 목적](#프로젝트의-목적)
+2. [프로젝트의 기능](#프로젝트의-기능)
+3. [프로젝트의 기술 스택](#프로젝트의-기술-스택)
+4. [실행 방법](#실행-방법)
+   1. [시작하기-앞서](#시작하기-앞서)
+   2. [Source Code](#Source-Code)
+   3. [Docker](#Docker)
+5. [변경사항 및 TODO](#변경사항-및-TODO)
+
+## 프로젝트의 목적
+
+Spring boot 기반 프로젝트로 REST API 서버 구현 및 TDD 실습
+
+## 프로젝트의 기능
+
+- 기존에 존재하는 SNS [인스타그램](https://www.instagram.com/) 백엔드 기능을 일부 사용 가능
+- 자세한 API 구성 설명은 [Swagger Hub - instagram-clone-be](https://app.swaggerhub.com/apis-docs/zoooo-hs/instagram-clone-be/1.0.0) 참고
+  - 회원
+    - 회원 가입
+    - 로그인
+    - 회원 바이오, 프로필 사진 변경
+    - 회원 정보 조회
+  - 팔로우/언팔로우
+  - 게시글 관리
+    - 피드 불러오기
+      - 팔로잉 및 자신의 게시글을 불러옴
+    - 게시글 작성/수정/삭제
+  - 좋아요/좋아요 취소
+    - 댓글, 게시글 좋아요/좋아요 취소
+  - 댓글 관리
+    - 게시글의 댓글 불러오기, 작성/수정/삭제
+    - 대댓글은 지원하지 않습니다.
+  - 검색
+    - 해쉬태그 리스트 검색
+    - 사용자 이름 검색
+
+## 프로젝트의 기술 스택
+
+- Language
+  - Java (11)
+- WAS + WS
+  - Spring boot(Tomcat, Java)
+- DB
+  - Vendor
+    - MariaDB
+  - DB Interface
+    - JPA(Hibernate) + Spring Data
+- Storage
+  - AWS S3
+    - For Test → s3mock
+- Authentication
+  - JWT
+    - 별도의 인증 서버 없이 Spring Security로 구현하여 WAS에 내장
+- Test
+  - Junit5 + Mockito
+
+## 실행 방법
+
+실행 방법은 source code, Docker 총 2가지를 지원한다.
+
+### 시작하기 앞서
+
+모든 방법을 사용하기 이전에 환경변수 설정을 해야한다. 아래와 같은 환경 변수를 추가한다. Soure Code는 JVM이 실행되는 환경에, 그리고 Docker는 container 실행 옵션으로 환경변수를 설정한다.
+
+- 필수 입력
+  - ACCESS_TOKEN_KEY
+    - access token 발급용 secret key
+    - 임의 값 입력
+  - REFRESH_TOKEN_KEY
+    - refresh token 발급용 secret key
+    - 임의 값 입력
+  - DB_URL
+    - DB 연결 URL
+  - DB_PORT
+    - DB 연결 PORT
+  - DB_USE
+    - database 이름
+  - DB_ID
+    - database 사용자 ID
+  - DB_PASSWORD
+    - database 사용자 PASSWORD
+- 선택 입력
+  - ACCESS_TOKEN_VALID_TIME
+    - access token 만료 시간
+    - millisecond 단위
+    - 기본 값 1일
+  - REFRESH_TOKEN_VALID_TIME
+    - refresh token 만료 시간
+    - millisecond 단위
+    - 기본 값 5일
+
+### Source Code
+
+```bash
+git clone https://github.com/zoooo-hs/instagram-clone-be
+cd instagram-clone-be
+./gradlew bootRun
+```
+
+### Docker
+
+```bash
+docker run --name instagram-clone -e DB_URL=localhost ... \ #환경 변수 설정 ... 
+	-p 8080:8080 \	
+	dogfooter/instagram-clone-be:1.0.0
+```
 
 ## 변경사항 및 TODO
 - [2022/02/21 (1.0.0 릴리즈)](https://dogfooter219.notion.site/1-0-0-e4307c1f5b1c4b5baf0d9754dc442284)
