@@ -63,7 +63,7 @@ public class LikeController {
         return likeService.likeComment(commentId, userDto);
     }
 
-    @Operation(summary = "게시글 좋아요 취소", description = "특정 게시글 좋아요 취소.")
+    @Operation(summary = "통합 좋아요 취소", description = "댓글, 게시글 좋아요 id로 취소. [주의] 1.0.0 버전의 DELETE /post/{postId}/like, DELETE /comment/{commentId}/like 는 제거 되었습니다. 본 API 로 통합되었습니다.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200", description = "좋아요 취소 성공. 좋아요 ID 반환",
@@ -74,24 +74,8 @@ public class LikeController {
                     content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ZooooExceptionResponse.class)) }
             ),
     })
-    @DeleteMapping("/post/{postId}/like")
-    public Long unlike(@PathVariable Long postId, @AuthenticationPrincipal UserDto userDto) {
-        return likeService.unlikePost(postId, userDto);
-    }
-
-    @Operation(summary = "댓글 좋아요 취소", description = "특정 댓글 좋아요 취소.")
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200", description = "좋아요 취소 성공. 좋아요 ID 반환",
-                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = Long.class)) }
-            ),
-            @ApiResponse(
-                    responseCode = "404", description = "좋아요를 찾을 수 없음",
-                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ZooooExceptionResponse.class)) }
-            ),
-    })
-    @DeleteMapping("/comment/{commentId}/like")
-    public Long unlikeComment(@PathVariable Long commentId, @AuthenticationPrincipal UserDto userDto) {
-        return likeService.unlikeComment(commentId, userDto);
+    @DeleteMapping("/like/{likeId}")
+    public Long unlike(@PathVariable Long likeId, @AuthenticationPrincipal UserDto userDto) {
+        return likeService.unlike(likeId, userDto);
     }
 }

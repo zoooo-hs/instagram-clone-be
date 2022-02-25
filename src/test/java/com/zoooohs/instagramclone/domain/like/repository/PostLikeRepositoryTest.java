@@ -12,16 +12,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.security.core.parameters.P;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
-import java.sql.SQLException;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -73,8 +68,8 @@ public class PostLikeRepositoryTest {
         assertEquals(like.getPost().getId(), actual.getPost().getId());
     }
 
+    // Entity 상속 Join Patter 쓰면서 어떻게 확인해야 할지 찾아야 함
     @DisplayName("postid, userid 쌍이 같은 postLike row가 insert되어선 안된다")
-    @Test
     public void postAndUserUniqueTest() {
         PostLikeEntity like = PostLikeEntity.builder().user(user).post(post).build();
         likeRepository.save(like);
