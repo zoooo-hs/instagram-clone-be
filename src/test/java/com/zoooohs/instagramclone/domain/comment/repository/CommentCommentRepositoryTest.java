@@ -1,7 +1,6 @@
 package com.zoooohs.instagramclone.domain.comment.repository;
 
 import com.zoooohs.instagramclone.domain.comment.entity.CommentCommentEntity;
-import com.zoooohs.instagramclone.domain.comment.entity.CommentEntity;
 import com.zoooohs.instagramclone.domain.comment.entity.PostCommentEntity;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
@@ -17,7 +16,6 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import javax.persistence.EntityManager;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @EnableJpaAuditing
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-public class CommentRepositoryTest {
+public class CommentCommentRepositoryTest {
 
     @Autowired
     PostCommentRepository postCommentRepository;
@@ -39,12 +37,6 @@ public class CommentRepositoryTest {
 
     @Autowired
     CommentCommentRepository commentCommentRepository;
-
-    @Autowired
-    CommentRepository commentRepository;
-
-    @Autowired
-    EntityManager entityManager;
 
     private PasswordEncoder passwordEncoder;
     private PostEntity post;
@@ -73,26 +65,18 @@ public class CommentRepositoryTest {
         postCommentRepository.save(comment);
     }
 
-    @DisplayName("id로 comment 찾기 테스트")
+    @DisplayName("comment save 테스트")
     @Test
-    public void findByIdTest() {
+    public void saveTest() {
         CommentCommentEntity commentCommentEntity = CommentCommentEntity.builder()
                 .content("new Content")
                 .comment(comment)
                 .user(user)
                 .build();
 
+        CommentCommentEntity actual = commentCommentRepository.save(commentCommentEntity);
 
-        commentCommentRepository.save(commentCommentEntity);
-        Long commentId = commentCommentEntity.getId();
-
-        entityManager.flush();
-        entityManager.clear();
-
-
-        CommentEntity actual = commentRepository.findById(commentId).orElse(null);
-
-        assertNotNull(actual);
+        assertNotNull(actual.getId());
         assertEquals(commentCommentEntity.getContent(), actual.getContent());
     }
 }

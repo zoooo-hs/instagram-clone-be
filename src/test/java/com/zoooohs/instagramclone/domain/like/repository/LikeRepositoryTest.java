@@ -1,7 +1,7 @@
 package com.zoooohs.instagramclone.domain.like.repository;
 
-import com.zoooohs.instagramclone.domain.comment.entity.CommentEntity;
-import com.zoooohs.instagramclone.domain.comment.repository.CommentRepository;
+import com.zoooohs.instagramclone.domain.comment.entity.PostCommentEntity;
+import com.zoooohs.instagramclone.domain.comment.repository.PostCommentRepository;
 import com.zoooohs.instagramclone.domain.like.entity.CommentLikeEntity;
 import com.zoooohs.instagramclone.domain.like.entity.LikeEntity;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
@@ -43,7 +43,7 @@ public class LikeRepositoryTest {
     PostRepository postRepository;
 
     @Autowired
-    CommentRepository commentRepository;
+    PostCommentRepository postCommentRepository;
 
     @Autowired
     EntityManager entityManager;
@@ -51,7 +51,7 @@ public class LikeRepositoryTest {
     private PasswordEncoder passwordEncoder;
     private PostEntity post;
     private UserEntity user;
-    private CommentEntity comment;
+    private PostCommentEntity comment;
 
     @BeforeEach
     public void setUp() {
@@ -68,8 +68,8 @@ public class LikeRepositoryTest {
         post = PostEntity.builder().description("post1").user(user).build();
         post = this.postRepository.save(post);
 
-        comment = CommentEntity.builder().post(post).user(user).content("some content").build();
-        comment = commentRepository.save(comment);
+        comment = PostCommentEntity.builder().post(post).user(user).content("some content").build();
+        comment = postCommentRepository.save(comment);
     }
 
     @DisplayName("LikeEntity 저장 후 CommentLikeEntity로 Casting")
@@ -82,7 +82,7 @@ public class LikeRepositoryTest {
         assertEquals(like.getComment().getId(), actual.getComment().getId());
     }
 
-    @DisplayName("LikeEntity 저장 후 LikeRepository에서 id로 읽어와도 CommentEntity로 Casting")
+    @DisplayName("LikeEntity 저장 후 LikeRepository에서 id로 읽어와도 PostCommentEntity로 Casting")
     @Test
     public void findTest() {
         CommentLikeEntity like = CommentLikeEntity.builder().user(user).comment(comment).build();

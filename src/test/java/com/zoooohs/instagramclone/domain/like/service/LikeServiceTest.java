@@ -1,6 +1,6 @@
 package com.zoooohs.instagramclone.domain.like.service;
 
-import com.zoooohs.instagramclone.domain.comment.entity.CommentEntity;
+import com.zoooohs.instagramclone.domain.comment.entity.PostCommentEntity;
 import com.zoooohs.instagramclone.domain.comment.repository.CommentRepository;
 import com.zoooohs.instagramclone.domain.like.dto.CommentLikeDto;
 import com.zoooohs.instagramclone.domain.like.dto.PostLikeDto;
@@ -54,7 +54,7 @@ public class LikeServiceTest {
     private PostEntity postEntity;
 
     private Long commentId;
-    private CommentEntity commentEntity;
+    private PostCommentEntity commentEntity;
     private CommentLikeEntity commentLikeEntity;
     private UserEntity userEntity;
 
@@ -69,7 +69,7 @@ public class LikeServiceTest {
         postLikeEntity.setId(1L);
 
         commentId = 1L;
-        commentEntity = CommentEntity.builder().post(postEntity).build();
+        commentEntity = PostCommentEntity.builder().post(postEntity).build();
         commentEntity.setId(commentId);
         commentLikeEntity = CommentLikeEntity.builder().comment(commentEntity).user(userEntity).build();
         commentLikeEntity.setId(1L);

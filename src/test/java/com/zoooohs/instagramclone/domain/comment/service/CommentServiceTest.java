@@ -1,15 +1,19 @@
 package com.zoooohs.instagramclone.domain.comment.service;
 
 import com.zoooohs.instagramclone.domain.comment.dto.CommentDto;
+import com.zoooohs.instagramclone.domain.comment.entity.CommentCommentEntity;
 import com.zoooohs.instagramclone.domain.comment.entity.CommentEntity;
+import com.zoooohs.instagramclone.domain.comment.entity.PostCommentEntity;
+import com.zoooohs.instagramclone.domain.comment.repository.CommentCommentRepository;
 import com.zoooohs.instagramclone.domain.comment.repository.CommentRepository;
+import com.zoooohs.instagramclone.domain.comment.repository.PostCommentRepository;
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
 import com.zoooohs.instagramclone.domain.like.entity.CommentLikeEntity;
-import com.zoooohs.instagramclone.domain.like.repository.CommentLikeRepository;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
+import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
 import com.zoooohs.instagramclone.exception.ErrorCode;
 import com.zoooohs.instagramclone.exception.ZooooException;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,19 +41,24 @@ public class CommentServiceTest {
     @Mock
     CommentRepository commentRepository;
     @Mock
+    CommentCommentRepository commentCommentRepository;
+    @Mock
+    PostCommentRepository postCommentRepository;
+    @Mock
     PostRepository postRepository;
     @Mock
-    CommentLikeRepository commentLikeRepository;
+    UserRepository userRepository;
+
     private UserDto userDto;
     private Long postId;
     private CommentDto commentDto;
     private PostEntity post;
     private PageModel pageModel;
-    private CommentEntity commentEntity;
+    private PostCommentEntity postCommentEntity;
 
     @BeforeEach
     public void setUp() {
-        commentService = new CommentServiceImpl(modelMapper, commentRepository, commentLikeRepository, postRepository);
+        commentService = new CommentServiceImpl(modelMapper, commentRepository, postCommentRepository, commentCommentRepository, postRepository, userRepository);
 
         userDto = UserDto.builder().id(1L).build();
         postId = 1L;
@@ -58,29 +67,61 @@ public class CommentServiceTest {
 
         pageModel = PageModel.builder().index(0).size(20).build();
 
-        commentEntity = new CommentEntity();
-        commentEntity.setId(1L);
-        commentEntity.setContent(commentDto.getContent());
+        postCommentEntity = new PostCommentEntity();
+        postCommentEntity.setId(1L);
+        postCommentEntity.setContent(commentDto.getContent());
     }
 
 
     @DisplayName("commentBody, user, postId 입력받아 comment id 포함된 comment Body 반환, db에 저장, postId가 없는 post일 경우 404, POST_NOT_FOUND")
     @Test
-    public void createTest() {
+    public void createPostCommentTest() {
+        given(userRepository.getById(eq(userDto.getId()))).willReturn(UserEntity.builder().id(userDto.getId()).build());
         given(this.postRepository.findById(eq(postId))).willReturn(Optional.ofNullable(post));
         given(this.postRepository.findById(eq(2L))).willReturn(Optional.ofNullable(null));
-        given(this.commentRepository.save(any(CommentEntity.class))).willReturn(commentEntity);
+        given(this.postCommentRepository.save(any(PostCommentEntity.class))).willReturn(postCommentEntity);
 
-        CommentDto actual = commentService.create(commentDto, postId, userDto);
+        CommentDto actual = commentService.createPostComment(commentDto, postId, userDto);
 
         assertTrue(actual.getId() != null);
         assertEquals(commentDto.getContent(), actual.getContent());
 
         try {
-            commentService.create(commentDto, 2L, userDto);
+            commentService.createPostComment(commentDto, 2L, userDto);
             fail();
         } catch (ZooooException e) {
             assertEquals(ErrorCode.POST_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @DisplayName("commentBody, user, commentId 입력받아 comment id 포함된 comment Body 반환, db에 저장, commentId가 없는 comment일 경우 404, COMMENT_NOT_FOUND")
+    @Test
+    public void createCommentCommentTest() {
+        Long commentId = 1L;
+        CommentEntity comment = PostCommentEntity.builder().build();
+        comment.setId(commentId);
+        CommentCommentEntity commentComment = CommentCommentEntity.builder()
+                .comment(comment)
+                .user(UserEntity.builder().id(userDto.getId()).build())
+                .content(commentDto.getContent()).build();
+        commentComment.setId(2L);
+
+        given(userRepository.getById(eq(userDto.getId()))).willReturn(UserEntity.builder().id(userDto.getId()).build());
+        given(commentRepository.findById(eq(commentId))).willReturn(Optional.of(comment));
+        given(commentCommentRepository.save(any())).willReturn(commentComment);
+
+        CommentDto actual = commentService.createCommentComment(commentDto, commentId, userDto);
+
+        assertNotNull(actual.getId());
+        assertEquals(commentDto.getContent(), actual.getContent());
+
+        try {
+            commentService.createCommentComment(commentDto, 2L, userDto);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.COMMENT_NOT_FOUND, e.getErrorCode());
         } catch (Exception e) {
             fail();
         }
@@ -91,9 +132,9 @@ public class CommentServiceTest {
     public void getPostCommentListTest() {
         Long postId = 1L;
 
-        ArrayList<CommentEntity> commentEntities = new ArrayList<>();
+        ArrayList<PostCommentEntity> commentEntities = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
-            CommentEntity commentEntity = CommentEntity.builder()
+            PostCommentEntity commentEntity = PostCommentEntity.builder()
                     .content("content " + i)
                     .user(UserEntity.builder().name("user"+1).id((long) i).build())
                     .build();
@@ -107,7 +148,7 @@ public class CommentServiceTest {
         }
 
         given(this.postRepository.findById(postId)).willReturn(Optional.ofNullable(post));
-        given(commentRepository.findByPostId(eq(postId), any(Pageable.class))).willReturn(commentEntities);
+        given(postCommentRepository.findByPostId(eq(postId), any(Pageable.class))).willReturn(commentEntities);
 
         List<CommentDto> actual = this.commentService.getPostCommentList(postId, pageModel, userDto.getId());
 
@@ -139,24 +180,24 @@ public class CommentServiceTest {
     public void updateCommentTest() {
         String newContent = "aaa";
         commentDto.setContent(newContent);
-        CommentEntity newComment = new CommentEntity();
-        newComment.setId(commentEntity.getId());
+        PostCommentEntity newComment = new PostCommentEntity();
+        newComment.setId(postCommentEntity.getId());
         newComment.setContent(newContent);
-        given(commentRepository.findByIdAndUserId(eq(commentEntity.getId()), eq(userDto.getId()))).willReturn(commentEntity);
-        given(commentRepository.save(any(CommentEntity.class))).willReturn(newComment);
+        given(postCommentRepository.findByIdAndUserId(eq(postCommentEntity.getId()), eq(userDto.getId()))).willReturn(postCommentEntity);
+        given(postCommentRepository.save(any(PostCommentEntity.class))).willReturn(newComment);
 
-        CommentDto actual = commentService.updateComment(commentEntity.getId(), commentDto, userDto);
+        CommentDto actual = commentService.updateComment(postCommentEntity.getId(), commentDto, userDto);
 
         assertEquals(newContent, actual.getContent());
-        assertEquals(commentEntity.getId(), actual.getId());
+        assertEquals(postCommentEntity.getId(), actual.getId());
     }
 
     @DisplayName("comment service  updateComment(postId, commentDto, userDto) 받아서 db에 comment 없으면 COMMENT_NOT_FOUND 반환 하도록 테스트")
     @Test
     public void updateCommentFailure404Test() {
-        given(commentRepository.findByIdAndUserId(eq(commentEntity.getId()), eq(userDto.getId()))).willReturn(null);
+        given(postCommentRepository.findByIdAndUserId(eq(postCommentEntity.getId()), eq(userDto.getId()))).willReturn(null);
         try {
-            commentService.updateComment(commentEntity.getId(), commentDto, userDto);
+            commentService.updateComment(postCommentEntity.getId(), commentDto, userDto);
             fail();
         } catch (ZooooException e) {
             assertEquals(ErrorCode.COMMENT_NOT_FOUND, e.getErrorCode());
@@ -169,7 +210,7 @@ public class CommentServiceTest {
     @Test
     public void deleteByIdTest() {
         Long commentId = 1L;
-        given(commentRepository.findByIdAndUserId(eq(1L), eq(userDto.getId()))).willReturn(commentEntity);
+        given(postCommentRepository.findByIdAndUserId(eq(1L), eq(userDto.getId()))).willReturn(postCommentEntity);
         Long actual = commentService.deleteById(commentId, userDto);
 
         assertEquals(commentId, actual);
@@ -179,7 +220,7 @@ public class CommentServiceTest {
     @Test
     public void deleteByIdFailure404Test() {
         Long commentId = 1L;
-        given(commentRepository.findByIdAndUserId(eq(1L), eq(userDto.getId()))).willReturn(null);
+        given(postCommentRepository.findByIdAndUserId(eq(1L), eq(userDto.getId()))).willReturn(null);
         try {
             commentService.deleteById(commentId, userDto);
             fail();

@@ -37,8 +37,24 @@ public class CommentController {
             ),
     })
     @PostMapping("/post/{postId}/comment")
-    public CommentDto create(@RequestBody @Valid CommentDto commentDto, @PathVariable Long postId, @AuthenticationPrincipal UserDto userDto) {
-        return commentService.create(commentDto, postId, userDto);
+    public CommentDto createPostComment(@RequestBody @Valid CommentDto commentDto, @PathVariable Long postId, @AuthenticationPrincipal UserDto userDto) {
+        return commentService.createPostComment(commentDto, postId, userDto);
+    }
+
+    @Operation(summary = "대댓글 작성", description = "대댓글을 작성한다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200", description = "대댓글 작성 성공. 작성 결과 반환",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = CommentDto.class)) }
+            ),
+            @ApiResponse(
+                    responseCode = "404", description = "원댓글이 존재하지 않음",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ZooooExceptionResponse.class)) }
+            ),
+    })
+    @PostMapping("/comment/{commentId}/comment")
+    public CommentDto createCommentComment(@RequestBody @Valid CommentDto commentDto, @PathVariable Long commentId, @AuthenticationPrincipal UserDto userDto) {
+        return commentService.createCommentComment(commentDto, commentId, userDto);
     }
 
     @Operation(summary = "게시글 댓글 조회", description = "게시글 댓글을 리스트를 불러온다.")

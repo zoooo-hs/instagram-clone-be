@@ -1,7 +1,7 @@
 package com.zoooohs.instagramclone.domain.like.repository;
 
-import com.zoooohs.instagramclone.domain.comment.entity.CommentEntity;
-import com.zoooohs.instagramclone.domain.comment.repository.CommentRepository;
+import com.zoooohs.instagramclone.domain.comment.entity.PostCommentEntity;
+import com.zoooohs.instagramclone.domain.comment.repository.PostCommentRepository;
 import com.zoooohs.instagramclone.domain.like.entity.CommentLikeEntity;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
@@ -38,12 +38,12 @@ public class CommentLikeRepositoryTest {
     PostRepository postRepository;
 
     @Autowired
-    CommentRepository commentRepository;
+    PostCommentRepository postCommentRepository;
 
     private PasswordEncoder passwordEncoder;
     private PostEntity post;
     private UserEntity user;
-    private CommentEntity comment;
+    private PostCommentEntity comment;
 
     @BeforeEach
     public void setUp() {
@@ -60,8 +60,8 @@ public class CommentLikeRepositoryTest {
         post = PostEntity.builder().description("post1").user(user).build();
         post = this.postRepository.save(post);
 
-        comment = CommentEntity.builder().post(post).user(user).content("some content").build();
-        comment = commentRepository.save(comment);
+        comment = PostCommentEntity.builder().post(post).user(user).content("some content").build();
+        comment = postCommentRepository.save(comment);
     }
 
     @DisplayName("like entity save test")

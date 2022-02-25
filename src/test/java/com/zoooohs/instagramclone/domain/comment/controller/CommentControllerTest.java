@@ -62,14 +62,14 @@ public class CommentControllerTest {
     @DisplayName("POST /post/{postId}/comment body, jwt 입력 받아, comment json return")
     @Test
     @WithAuthUser(email = "user1@test.test", id = 1L)
-    public void isOkTest() throws Exception {
+    public void createPostCommentTest() throws Exception {
         Long postId = 1L;
         String content = "comment content";
         String url = String.format("/post/%d/comment", postId);
         CommentDto commentDto = CommentDto.builder().content(content).build();
         commentDto.setId(1L);
 
-        given(this.commentService.create(any(CommentDto.class), anyLong(), any(UserDto.class))).willReturn(commentDto);
+        given(this.commentService.createPostComment(any(CommentDto.class), anyLong(), any(UserDto.class))).willReturn(commentDto);
 
         mockMvc.perform(post(url)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -157,5 +157,33 @@ public class CommentControllerTest {
 
         mockMvc.perform(delete(url404))
                 .andExpect(status().isNotFound());
+    }
+
+    @DisplayName("POST /comment/{commentId}/comment body, jwt 입력 받아, comment json return. 없는 commentId의 경우 404 반환")
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L)
+    public void createCommentCommentTest() throws Exception {
+        Long commentId = 1L;
+        String content = "comment content";
+        String url = String.format("/comment/%d/comment", commentId);
+        String url404 = String.format("/comment/%d/comment", 22L);
+        CommentDto commentDto = CommentDto.builder().content(content).build();
+        commentDto.setId(1L);
+
+        given(this.commentService.createCommentComment(any(CommentDto.class), eq(1L), any(UserDto.class))).willReturn(commentDto);
+        given(this.commentService.createCommentComment(any(CommentDto.class), eq(22L), any(UserDto.class))).willThrow(new ZooooException(ErrorCode.COMMENT_NOT_FOUND));
+
+        mockMvc.perform(post(url)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsBytes(commentDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", Matchers.instanceOf(Integer.class)))
+                .andExpect(jsonPath("$.content", Matchers.is(content)));
+
+        mockMvc.perform(post(url404)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsBytes(commentDto)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code", Matchers.is(ErrorCode.COMMENT_NOT_FOUND.name())));
     }
 }
