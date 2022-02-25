@@ -5,8 +5,10 @@ import com.zoooohs.instagramclone.domain.comment.repository.CommentRepository;
 import com.zoooohs.instagramclone.domain.like.dto.CommentLikeDto;
 import com.zoooohs.instagramclone.domain.like.dto.PostLikeDto;
 import com.zoooohs.instagramclone.domain.like.entity.CommentLikeEntity;
+import com.zoooohs.instagramclone.domain.like.entity.LikeEntity;
 import com.zoooohs.instagramclone.domain.like.entity.PostLikeEntity;
 import com.zoooohs.instagramclone.domain.like.repository.CommentLikeRepository;
+import com.zoooohs.instagramclone.domain.like.repository.LikeRepository;
 import com.zoooohs.instagramclone.domain.like.repository.PostLikeRepository;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
@@ -17,7 +19,6 @@ import com.zoooohs.instagramclone.exception.ZooooException;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
-
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -29,6 +30,7 @@ public class LikeServiceImpl implements LikeService {
     private final CommentRepository commentRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final ModelMapper modelMapper;
+    private final LikeRepository likeRepository;
 
     @Transactional
     @Override
@@ -77,6 +79,14 @@ public class LikeServiceImpl implements LikeService {
         }
         Long likeId = commentLike.getId();
         commentLikeRepository.delete(commentLike);
+        return likeId;
+    }
+
+    @Transactional
+    @Override
+    public Long unlike(Long likeId, UserDto userDto) {
+        LikeEntity like = likeRepository.findByIdAndUserId(likeId, userDto.getId()).orElseThrow(() -> new ZooooException(ErrorCode.LIKE_NOT_FOUND));
+        likeRepository.delete(like);
         return likeId;
     }
 }

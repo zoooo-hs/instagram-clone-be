@@ -7,6 +7,7 @@ import com.zoooohs.instagramclone.domain.like.dto.PostLikeDto;
 import com.zoooohs.instagramclone.domain.like.entity.CommentLikeEntity;
 import com.zoooohs.instagramclone.domain.like.entity.PostLikeEntity;
 import com.zoooohs.instagramclone.domain.like.repository.CommentLikeRepository;
+import com.zoooohs.instagramclone.domain.like.repository.LikeRepository;
 import com.zoooohs.instagramclone.domain.like.repository.PostLikeRepository;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
@@ -24,7 +25,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.modelmapper.ModelMapper;
-import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Optional;
 
@@ -44,6 +44,8 @@ public class LikeServiceTest {
     CommentRepository commentRepository;
     @Mock
     CommentLikeRepository commentLikeRepository;
+    @Mock
+    LikeRepository likeRepository;
     @Spy
     ModelMapper modelMapper;
     private UserDto userDto;
@@ -58,7 +60,7 @@ public class LikeServiceTest {
 
     @BeforeEach
     public void setUp() {
-        likeService = new LikeServiceImpl(postRepository, postLikeRepository, commentRepository, commentLikeRepository, modelMapper);
+        likeService = new LikeServiceImpl(postRepository, postLikeRepository, commentRepository, commentLikeRepository, modelMapper, likeRepository);
         userDto = UserDto.builder().id(1L).build();
         postId = 1L;
         postEntity = PostEntity.builder().id(postId).build();
@@ -114,7 +116,7 @@ public class LikeServiceTest {
 
     @DisplayName("postid, userdto 받아 like entity 삭제 후 삭제된 id 반환")
     @Test
-    public void unlikeTest() {
+    public void unlikePostTest() {
         given(postLikeRepository.findByPostIdAndUserId(eq(postId), eq(userDto.getId()))).willReturn(postLikeEntity);
 
         Long actual = likeService.unlikePost(postId, userDto);
@@ -124,7 +126,7 @@ public class LikeServiceTest {
 
     @DisplayName("postid, userdto 에 맞는 like없을 경우 like not found 예외 쓰로우")
     @Test
-    public void unlikeFailure404Test() {
+    public void unlikePostFailure404Test() {
         try {
             likeService.unlikePost(2L, userDto);
         } catch (ZooooException e) {
@@ -190,6 +192,34 @@ public class LikeServiceTest {
 
         try {
             likeService.unlikeComment(commentId, userDto);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.LIKE_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @DisplayName("likeId, userDto 입력 받아 likeId로 저장한 좋아요가 있으면 삭제 후 id 반환")
+    @Test
+    public void unlikeTest() {
+        Long likeId = 1L;
+
+        given(likeRepository.findByIdAndUserId(eq(likeId), eq(userDto.getId()))).willReturn(Optional.of(new CommentLikeEntity()));
+
+        Long actual = likeService.unlike(likeId, userDto);
+
+        assertEquals(likeId, actual);
+    }
+
+    @DisplayName("likeId, userDto 입력 받아 likeId로 저장한 좋아요가 없으면 LIKE NOT FOUND Throw")
+    @Test
+    public void unlikeFailure404Test() {
+        Long likeId = 1L;
+        given(likeRepository.findByIdAndUserId(eq(likeId), eq(userDto.getId()))).willThrow(new ZooooException(ErrorCode.LIKE_NOT_FOUND));
+
+        try {
+            likeService.unlike(likeId, userDto);
             fail();
         } catch (ZooooException e) {
             assertEquals(ErrorCode.LIKE_NOT_FOUND, e.getErrorCode());

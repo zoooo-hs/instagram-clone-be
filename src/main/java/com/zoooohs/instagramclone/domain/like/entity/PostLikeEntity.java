@@ -1,32 +1,24 @@
 package com.zoooohs.instagramclone.domain.like.entity;
 
-import com.zoooohs.instagramclone.domain.common.entity.BaseEntity;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import javax.persistence.*;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @Entity(name = "post_like")
-@Table(uniqueConstraints = {
-        @UniqueConstraint(name = "u_post_user_post_like", columnNames = {"post_id", "user_id"}),
-})
-public class PostLikeEntity extends BaseEntity {
+@DiscriminatorValue("post_like")
+public class PostLikeEntity extends LikeEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id", nullable = false)
     private PostEntity post;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserEntity user;
-
     @Builder
     public PostLikeEntity(PostEntity post, UserEntity user) {
+        super(user);
         this.post = post;
-        this.user = user;
     }
 }
