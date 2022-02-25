@@ -71,23 +71,23 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     @Override
     public CommentDto updateComment(Long commentId, CommentDto commentDto, UserDto userDto) {
-        PostCommentEntity comment = this.postCommentRepository.findByIdAndUserId(commentId, userDto.getId());
+        CommentEntity comment = this.commentRepository.findByIdAndUserId(commentId, userDto.getId());
         if (comment == null) {
             throw new ZooooException(ErrorCode.COMMENT_NOT_FOUND);
         }
         comment.setContent(commentDto.getContent());
-        comment = this.postCommentRepository.save(comment);
+        comment = this.commentRepository.save(comment);
         return this.modelMapper.map(comment, CommentDto.class);
     }
 
     @Transactional
     @Override
     public Long deleteById(Long commentId, UserDto userDto) {
-        PostCommentEntity comment = this.postCommentRepository.findByIdAndUserId(commentId, userDto.getId());
+        CommentEntity comment = this.commentRepository.findByIdAndUserId(commentId, userDto.getId());
         if (comment == null) {
             throw new ZooooException(ErrorCode.COMMENT_NOT_FOUND);
         }
-        this.postCommentRepository.delete(comment);
+        this.commentRepository.delete(comment);
         return commentId;
     }
 }

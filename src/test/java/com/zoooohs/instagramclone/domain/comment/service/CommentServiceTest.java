@@ -183,8 +183,8 @@ public class CommentServiceTest {
         PostCommentEntity newComment = new PostCommentEntity();
         newComment.setId(postCommentEntity.getId());
         newComment.setContent(newContent);
-        given(postCommentRepository.findByIdAndUserId(eq(postCommentEntity.getId()), eq(userDto.getId()))).willReturn(postCommentEntity);
-        given(postCommentRepository.save(any(PostCommentEntity.class))).willReturn(newComment);
+        given(commentRepository.findByIdAndUserId(eq(postCommentEntity.getId()), eq(userDto.getId()))).willReturn(postCommentEntity);
+        given(commentRepository.save(any(PostCommentEntity.class))).willReturn(newComment);
 
         CommentDto actual = commentService.updateComment(postCommentEntity.getId(), commentDto, userDto);
 
@@ -192,10 +192,27 @@ public class CommentServiceTest {
         assertEquals(postCommentEntity.getId(), actual.getId());
     }
 
+    @DisplayName("CommentCommentEntity 수정하여 CommentDto 반환")
+    @Test
+    public void updateCommentCommentTest() {
+        String newContent = "aaa";
+        commentDto.setContent(newContent);
+        CommentCommentEntity newComment = new CommentCommentEntity();
+        newComment.setId(1L);
+        newComment.setContent(newContent);
+
+        given(commentRepository.findByIdAndUserId(eq(postCommentEntity.getId()), eq(userDto.getId()))).willReturn(postCommentEntity);
+        given(commentRepository.save(any(CommentEntity.class))).willReturn(newComment);
+
+        CommentDto actual = commentService.updateComment(postCommentEntity.getId(), commentDto, userDto);
+
+        assertEquals(newContent, actual.getContent());
+    }
+
     @DisplayName("comment service  updateComment(postId, commentDto, userDto) 받아서 db에 comment 없으면 COMMENT_NOT_FOUND 반환 하도록 테스트")
     @Test
     public void updateCommentFailure404Test() {
-        given(postCommentRepository.findByIdAndUserId(eq(postCommentEntity.getId()), eq(userDto.getId()))).willReturn(null);
+        given(commentRepository.findByIdAndUserId(eq(postCommentEntity.getId()), eq(userDto.getId()))).willReturn(null);
         try {
             commentService.updateComment(postCommentEntity.getId(), commentDto, userDto);
             fail();
@@ -210,7 +227,7 @@ public class CommentServiceTest {
     @Test
     public void deleteByIdTest() {
         Long commentId = 1L;
-        given(postCommentRepository.findByIdAndUserId(eq(1L), eq(userDto.getId()))).willReturn(postCommentEntity);
+        given(commentRepository.findByIdAndUserId(eq(1L), eq(userDto.getId()))).willReturn(postCommentEntity);
         Long actual = commentService.deleteById(commentId, userDto);
 
         assertEquals(commentId, actual);
@@ -220,7 +237,7 @@ public class CommentServiceTest {
     @Test
     public void deleteByIdFailure404Test() {
         Long commentId = 1L;
-        given(postCommentRepository.findByIdAndUserId(eq(1L), eq(userDto.getId()))).willReturn(null);
+        given(commentRepository.findByIdAndUserId(eq(1L), eq(userDto.getId()))).willReturn(null);
         try {
             commentService.deleteById(commentId, userDto);
             fail();

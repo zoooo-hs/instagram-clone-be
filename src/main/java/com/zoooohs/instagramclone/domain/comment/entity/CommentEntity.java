@@ -32,8 +32,11 @@ public abstract class CommentEntity extends BaseEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private UserEntity user;
 
-    @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private Set<CommentLikeEntity> likes = new HashSet<>();
+
+    @OneToMany(mappedBy = "comment", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private Set<CommentCommentEntity> comments = new HashSet<>();
 
     public Long getLikeCount() {
         return (long) likes.size();

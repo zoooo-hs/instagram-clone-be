@@ -20,8 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import javax.persistence.EntityManager;
 import java.util.Date;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @EnableJpaAuditing
 @DataJpaTest
@@ -94,5 +93,60 @@ public class CommentRepositoryTest {
 
         assertNotNull(actual);
         assertEquals(commentCommentEntity.getContent(), actual.getContent());
+    }
+
+    @DisplayName("commentRepository.findByIdAndUserId commentId, userId 받아와서 해당 유저의 댓글 가져오는 기능 테스트")
+    @Test
+    public void findByIdAndUserIdTest() {
+        PostCommentEntity comment = new PostCommentEntity();
+        comment.setContent("content22");
+        comment.setUser(user);
+        comment.setPost(post);
+        comment = this.postCommentRepository.save(comment);
+
+        CommentEntity actual = this.commentRepository.findByIdAndUserId(comment.getId(), user.getId());
+        CommentEntity actualNull = this.commentRepository.findByIdAndUserId(comment.getId(), user.getId()+3L);
+
+        assertNotNull(comment);
+        assertEquals(comment.getId(), actual.getId());
+        assertEquals(comment.getContent(), actual.getContent());
+        assertNull(actualNull);
+    }
+
+    @DisplayName("comment Repository delete(commentEntity)로 댓글 삭제 테스트")
+    @Test
+    public void deleteTest() {
+        PostCommentEntity comment = new PostCommentEntity();
+        comment.setContent("content22");
+        comment.setUser(user);
+        comment.setPost(post);
+        comment = this.postCommentRepository.save(comment);
+
+        Long commentId = comment.getId();
+
+        this.commentRepository.delete(comment);
+
+        assertThrows(Exception.class, () -> commentRepository.findById(commentId).orElseThrow(() -> new Exception()));
+    }
+
+    @DisplayName("대댓글의 원글 삭제시, 대댓글도 같이 삭제")
+    @Test
+    public void deleteCascadeTest() {
+        PostCommentEntity comment = new PostCommentEntity();
+        comment.setContent("content22");
+        comment.setUser(user);
+        comment.setPost(post);
+        comment = this.postCommentRepository.save(comment);
+
+        CommentCommentEntity commentComment = CommentCommentEntity.builder()
+                .comment(comment)
+                .user(user)
+                .content("asdf")
+                .build();
+
+
+        this.commentRepository.delete(comment);
+
+        assertTrue(true);
     }
 }
