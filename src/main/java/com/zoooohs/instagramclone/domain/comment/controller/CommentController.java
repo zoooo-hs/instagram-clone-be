@@ -89,7 +89,7 @@ public class CommentController {
         return commentService.getCommentCommentList(commentId, pageModel, userDto.getId());
     }
 
-    @Operation(summary = "게시글 댓글 수정", description = "게시글 댓글의 내용을 수정한다.")
+    @Operation(summary = "댓글 수정", description = "댓글의 내용을 수정한다.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200", description = "수정 성공. 수정 결과 반환",
@@ -105,7 +105,7 @@ public class CommentController {
         return commentService.updateComment(commentId, commentDto, userDto);
     }
 
-    @Operation(summary = "게시글 댓글 삭제", description = "게시글 댓글을 삭제한다.")
+    @Operation(summary = "댓글 삭제", description = "댓글을 삭제한다.")
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "200", description = "삭제 성공. 삭제된 댓글 ID 반환",
