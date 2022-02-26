@@ -12,11 +12,14 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -78,5 +81,28 @@ public class CommentCommentRepositoryTest {
 
         assertNotNull(actual.getId());
         assertEquals(commentCommentEntity.getContent(), actual.getContent());
+    }
+
+    @DisplayName("commentId 받아와 대댓글 리스트 반환하는 Repository 테스트")
+    @Test
+    public void findByCommentIdTest() {
+        List<CommentCommentEntity> commentCommentEntities = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            CommentCommentEntity commentComment = CommentCommentEntity.builder()
+                    .content("new Content")
+                    .comment(comment)
+                    .user(user)
+                    .build();
+
+            commentCommentEntities.add(commentComment);
+        }
+        commentCommentRepository.saveAll(commentCommentEntities);
+
+        List<CommentCommentEntity> actual = commentCommentRepository.findByCommentId(comment.getId(), PageRequest.of(0, 10));
+
+        assertEquals(10, actual.size());
+        for (int i = 0; i < 10; i++) {
+            assertEquals(comment.getId(), actual.get(i).getComment().getId());
+        }
     }
 }

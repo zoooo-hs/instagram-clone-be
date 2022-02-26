@@ -61,11 +61,26 @@ public class CommentServiceImpl implements CommentService {
         PostEntity post = this.postRepository.findById(postId).orElseThrow(() -> new ZooooException(ErrorCode.POST_NOT_FOUND));
         List<PostCommentEntity> comments = this.postCommentRepository.findByPostId(post.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
         return comments.stream().map(entity -> {
-            CommentDto dto = this.modelMapper.map(entity, CommentDto.class);
-            boolean isLiked = entity.getLikes().stream().filter(like -> like.getUser().getId().equals(userId)).findFirst().isPresent();
-            dto.isLiked(isLiked);
-            return dto;
+            CommentEntity commentEntity = entity;
+            return makeCommentDto(userId, commentEntity);
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<CommentDto> getCommentCommentList(Long commentId, PageModel pageModel, Long userId) {
+        CommentEntity comment = commentRepository.findById(commentId).orElseThrow(() -> new ZooooException(ErrorCode.COMMENT_NOT_FOUND));
+        List<CommentCommentEntity> comments = commentCommentRepository.findByCommentId(comment.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+        return comments.stream().map(entity -> {
+            CommentEntity commentEntity = entity;
+            return makeCommentDto(userId, commentEntity);
+        }).collect(Collectors.toList());
+    }
+
+    private CommentDto makeCommentDto(Long userId, CommentEntity commentEntity) {
+        CommentDto dto = this.modelMapper.map(commentEntity, CommentDto.class);
+        boolean isLiked = commentEntity.getLikes().stream().filter(like -> like.getUser().getId().equals(userId)).findFirst().isPresent();
+        dto.isLiked(isLiked);
+        return dto;
     }
 
     @Transactional

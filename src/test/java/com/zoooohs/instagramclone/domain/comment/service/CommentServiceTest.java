@@ -158,6 +158,41 @@ public class CommentServiceTest {
         assertTrue(actual.get(0).isLiked());
     }
 
+    @DisplayName("commentId 입력 받아 comment comment list 반환하는 service 테스트")
+    @Test
+    public void getCommentCommentListTest() {
+        Long commentId = 1L;
+
+        CommentEntity comment = PostCommentEntity.builder()
+                .build();
+        comment.setId(commentId);
+
+        ArrayList<CommentCommentEntity> commentEntities = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            CommentCommentEntity commentEntity = CommentCommentEntity.builder()
+                    .content("content " + i)
+                    .user(UserEntity.builder().name("user"+1).id((long) i).build())
+                    .build();
+            CommentLikeEntity commentLike = new CommentLikeEntity();
+            commentLike.setComment(commentEntity);
+            commentLike.setUser(UserEntity.builder().id(userDto.getId()).build());
+            commentEntities.add(commentEntity);
+            Set<CommentLikeEntity>  likes = new HashSet<>();
+            likes.add(commentLike);
+            commentEntity.setLikes(likes);
+        }
+
+        given(this.commentRepository.findById(commentId)).willReturn(Optional.ofNullable(comment));
+        given(commentCommentRepository.findByCommentId(eq(commentId), any(Pageable.class))).willReturn(commentEntities);
+
+        List<CommentDto> actual = this.commentService.getCommentCommentList(commentId, pageModel, userDto.getId());
+
+        assertNotEquals(null, actual);
+        assertTrue(actual.size() <= pageModel.getSize());
+        assertNotNull(actual.get(0).getLikeCount());
+        assertTrue(actual.get(0).isLiked());
+    }
+
     @DisplayName("없는 postId의 경우 POST_NOT_FOUND Exception throw 하는 service테스트")
     @Test
     public void getPostCommentList404FailureTest() {

@@ -73,6 +73,22 @@ public class CommentController {
         return commentService.getPostCommentList(postId, pageModel, userDto.getId());
     }
 
+    @Operation(summary = "대댓글 조회", description = "대댓글 리스트를 불러온다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200", description = "조회 성공. 댓글 리스트 반환",
+                    content = { @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = CommentDto.class))) }
+            ),
+            @ApiResponse(
+                    responseCode = "404", description = "게시글이 존재하지 않음",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ZooooExceptionResponse.class)) }
+            ),
+    })
+    @GetMapping("/comment/{commentId}/comment")
+    public List<CommentDto> getCommentCommentList(@PathVariable Long commentId, @ModelAttribute @NotNull PageModel pageModel, @AuthenticationPrincipal UserDto userDto) {
+        return commentService.getCommentCommentList(commentId, pageModel, userDto.getId());
+    }
+
     @Operation(summary = "게시글 댓글 수정", description = "게시글 댓글의 내용을 수정한다.")
     @ApiResponses(value = {
             @ApiResponse(

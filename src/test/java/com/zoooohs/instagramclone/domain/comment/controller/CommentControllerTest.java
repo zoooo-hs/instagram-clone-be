@@ -118,6 +118,43 @@ public class CommentControllerTest {
 
     }
 
+    @DisplayName("GET /comment/{commentId}/comment 입력, comment 리스트 반환, 없는 commentId의 경우 404")
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L)
+    public void getCommentCommentListTest() throws Exception {
+        Long commentId = 1L;
+        String url = String.format("/comment/%d/comment", commentId);
+        String url404 = String.format("/comment/%d/comment", 2L);
+
+        ArrayList<CommentDto> commentDtos = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            CommentDto commentDto = CommentDto.builder()
+                    .content("content " + i)
+                    .user(UserDto.Feed.builder().name("user"+1).id((long) i).build())
+                    .likeCount((long) 0)
+                    .isLiked(false)
+                    .build();
+            commentDtos.add(commentDto);
+        }
+
+        given(this.commentService.getCommentCommentList(eq(commentId), any(PageModel.class), eq(1L))).willReturn(commentDtos);
+        given(this.commentService.getCommentCommentList(eq(2L), any(PageModel.class), eq(1L))).willThrow(new ZooooException(ErrorCode.COMMENT_NOT_FOUND));
+
+        mockMvc.perform(get(url)
+                        .param("index", "0")
+                        .param("size", "20")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.hasSize(commentDtos.size())))
+                .andExpect(jsonPath("$[0].like_count", Matchers.instanceOf(Integer.class)))
+                .andExpect(jsonPath("$[0].liked", Matchers.instanceOf(Boolean.class)))
+        ;
+
+        mockMvc.perform(get(url404))
+                .andExpect(status().isNotFound());
+
+    }
+
     @DisplayName("PATCH /comment/{commentId}, body, jwt 입력 받아 comment json 반환. 없는 comment의 경우 404 return")
     @Test
     @WithAuthUser(email = "user1@test.test", id = 1L)
