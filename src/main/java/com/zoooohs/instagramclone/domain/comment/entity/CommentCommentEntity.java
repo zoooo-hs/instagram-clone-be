@@ -24,4 +24,9 @@ public class CommentCommentEntity extends CommentEntity {
         super(content, user);
         this.comment = comment;
     }
+
+    public void setComment(CommentEntity comment) {
+        this.comment = comment;
+        comment.getComments().add(this);
+    }
 }

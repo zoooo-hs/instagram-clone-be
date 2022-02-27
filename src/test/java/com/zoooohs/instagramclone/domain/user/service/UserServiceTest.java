@@ -16,7 +16,7 @@ import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -94,7 +94,7 @@ public class UserServiceTest {
     @DisplayName("keyword, search_key=name, index, size 입력받아 keyword와 유사한 이름을 가진 user list 반환")
     @Test
     public void getUsersTest() {
-        SearchModel searchModel = new SearchModel(0, 20, "aa", SearchKeyType.NAME);
+        SearchModel searchModel = new SearchModel(0, 20, null, "aa", SearchKeyType.NAME);
 
         List<UserEntity> users = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
@@ -102,7 +102,7 @@ public class UserServiceTest {
             users.add(user);
         }
 
-        given(userRepository.findByNameIgnoreCaseContaining("aa", PageRequest.of(0, 20))).willReturn(users);
+        given(userRepository.findByNameIgnoreCaseContaining(anyString(), any(Pageable.class))).willReturn(users);
 
         // 여기까지 Optional일 필요가 있나 싶긴하다
         Optional<List<UserDto.Info>> maybeUsers = Optional.ofNullable(userService.getUsers(searchModel));

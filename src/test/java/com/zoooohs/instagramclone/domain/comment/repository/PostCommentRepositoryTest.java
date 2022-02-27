@@ -1,8 +1,10 @@
 package com.zoooohs.instagramclone.domain.comment.repository;
 
+import com.zoooohs.instagramclone.domain.comment.entity.CommentCommentEntity;
 import com.zoooohs.instagramclone.domain.comment.entity.PostCommentEntity;
 import com.zoooohs.instagramclone.domain.like.entity.CommentLikeEntity;
 import com.zoooohs.instagramclone.domain.like.repository.CommentLikeRepository;
+import com.zoooohs.instagramclone.domain.like.repository.LikeRepository;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
@@ -35,6 +37,9 @@ public class PostCommentRepositoryTest {
     PostCommentRepository postCommentRepository;
 
     @Autowired
+    CommentRepository commentRepository;
+
+    @Autowired
     UserRepository userRepository;
 
     @Autowired
@@ -42,6 +47,9 @@ public class PostCommentRepositoryTest {
 
     @Autowired
     CommentLikeRepository commentLikeRepository;
+
+    @Autowired
+    LikeRepository likeRepository;
 
     @Autowired
     EntityManager entityManager;
@@ -135,6 +143,7 @@ public class PostCommentRepositoryTest {
         assertNotEquals(null, actual);
         assertEquals(pageSize, actual.size());
         assertEquals(1, actual.get(0).getLikeCount());
+        assertEquals(0, actual.get(0).getCommentCount());
         assertTrue(actual.get(0).getLikes().stream().filter(l -> l.getUser().getId().equals(user.getId())).findFirst().isPresent());
     }
 
@@ -170,5 +179,61 @@ public class PostCommentRepositoryTest {
         this.postCommentRepository.delete(comment);
 
         assertThrows(Exception.class, () -> postCommentRepository.findById(commentId).orElseThrow(() -> new Exception()));
+    }
+
+
+    @DisplayName("like 개수로 정렬해 받아오기")
+    @Test
+    public void orderByLikeCountTest() {
+        for (int i = 0; i < 2; i++) {
+            PostCommentEntity comment = new PostCommentEntity();
+            comment.setContent("content22");
+            comment.setUser(user);
+            comment.setPost(post);
+            comment = this.postCommentRepository.save(comment);
+            for (int j = i; j < 1; j++) {
+                // 순서대로 좋아요 1개, 0개 넣기
+                CommentLikeEntity like = CommentLikeEntity.builder().user(user).comment(comment).build();
+                likeRepository.save(like);
+            }
+        }
+
+        entityManager.flush();
+        entityManager.clear();
+
+        List<PostCommentEntity> actual = postCommentRepository.findPostCommentsOrderByLikesSize(post.getId(), PageRequest.of(0, 10));
+
+        assertEquals(1, actual.get(0).getLikeCount());
+        assertEquals(0, actual.get(1).getLikeCount());
+    }
+
+    @DisplayName("대댓글 개수로 정렬해 받아오기")
+    @Test
+    public void orderByCommentCountTest() {
+        for (int i = 0; i < 2; i++) {
+            PostCommentEntity comment = new PostCommentEntity();
+            comment.setContent("content22");
+            comment.setUser(user);
+            comment.setPost(post);
+            comment = this.postCommentRepository.save(comment);
+
+            for (int j = i; j < 2; j++) {
+                // 순서대로 대댓글 2개, 1개 넣기
+                CommentCommentEntity commentComment = CommentCommentEntity.builder()
+                        .content("asdfasdf")
+                        .user(user)
+                        .comment(comment)
+                        .build();
+                commentRepository.save(commentComment);
+            }
+        }
+
+        entityManager.flush();
+        entityManager.clear();
+
+        List<PostCommentEntity> actual = postCommentRepository.findPostCommentsOrderByCommentsSize(post.getId(), PageRequest.of(0, 10));
+
+        assertEquals(2, actual.get(0).getCommentCount());
+        assertEquals(1, actual.get(1).getCommentCount());
     }
 }

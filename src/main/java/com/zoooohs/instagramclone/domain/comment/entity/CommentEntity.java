@@ -42,6 +42,10 @@ public abstract class CommentEntity extends BaseEntity {
         return (long) likes.size();
     }
 
+    public Long getCommentCount() {
+        return (long) comments.size();
+    }
+
     public CommentEntity(String content, UserEntity user) {
         this.content = content;
         this.user = user;

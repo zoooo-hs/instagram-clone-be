@@ -65,7 +65,7 @@ public class CommentServiceTest {
         commentDto = CommentDto.builder().content("content").build();
         post = PostEntity.builder().id(postId).build();
 
-        pageModel = PageModel.builder().index(0).size(20).build();
+        pageModel = new PageModel(0, 20, null);
 
         postCommentEntity = new PostCommentEntity();
         postCommentEntity.setId(1L);

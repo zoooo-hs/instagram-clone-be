@@ -3,6 +3,7 @@ package com.zoooohs.instagramclone.domain.comment.controller;
 import com.zoooohs.instagramclone.domain.comment.dto.CommentDto;
 import com.zoooohs.instagramclone.domain.comment.service.CommentService;
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
+import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.exception.ZooooExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -69,8 +70,8 @@ public class CommentController {
             ),
     })
     @GetMapping("/post/{postId}/comment")
-    public List<CommentDto> getPostCommentList(@PathVariable Long postId, @ModelAttribute @NotNull PageModel pageModel, @AuthenticationPrincipal UserDto userDto) {
-        return commentService.getPostCommentList(postId, pageModel, userDto.getId());
+    public List<CommentDto> getPostCommentList(@PathVariable Long postId, @ModelAttribute @NotNull SearchModel searchModel, @AuthenticationPrincipal UserDto userDto) {
+        return commentService.getPostCommentList(postId, searchModel, userDto.getId());
     }
 
     @Operation(summary = "대댓글 조회", description = "대댓글 리스트를 불러온다.")

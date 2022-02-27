@@ -59,7 +59,22 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public List<CommentDto> getPostCommentList(Long postId, PageModel pageModel, Long userId) {
         PostEntity post = this.postRepository.findById(postId).orElseThrow(() -> new ZooooException(ErrorCode.POST_NOT_FOUND));
-        List<PostCommentEntity> comments = this.postCommentRepository.findByPostId(post.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+        List<PostCommentEntity> comments;
+        if (pageModel.getSortKey() == null) {
+            comments = this.postCommentRepository.findByPostId(post.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+        }
+        else {
+            switch (pageModel.getSortKey()) {
+                case LIKE:
+                    comments = postCommentRepository.findPostCommentsOrderByLikesSize(post.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+                    break;
+                case COMMENT:
+                    comments = postCommentRepository.findPostCommentsOrderByCommentsSize(post.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+                    break;
+                default:
+                    comments = this.postCommentRepository.findByPostId(post.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+            }
+        }
         return comments.stream().map(entity -> {
             CommentEntity commentEntity = entity;
             return makeCommentDto(userId, commentEntity);
@@ -69,7 +84,22 @@ public class CommentServiceImpl implements CommentService {
     @Override
     public List<CommentDto> getCommentCommentList(Long commentId, PageModel pageModel, Long userId) {
         CommentEntity comment = commentRepository.findById(commentId).orElseThrow(() -> new ZooooException(ErrorCode.COMMENT_NOT_FOUND));
-        List<CommentCommentEntity> comments = commentCommentRepository.findByCommentId(comment.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+        List<CommentCommentEntity> comments;
+        if (pageModel.getSortKey() == null) {
+            comments = this.commentCommentRepository.findByCommentId(comment.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+        }
+        else {
+            switch (pageModel.getSortKey()) {
+                case LIKE:
+                    comments = commentCommentRepository.findCommentCommentsOrderByLikesSize(comment.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+                    break;
+                case COMMENT:
+                    comments = commentCommentRepository.findCommentCommentsOrderByCommentsSize(comment.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+                    break;
+                default:
+                    comments = this.commentCommentRepository.findByCommentId(comment.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+            }
+        }
         return comments.stream().map(entity -> {
             CommentEntity commentEntity = entity;
             return makeCommentDto(userId, commentEntity);

@@ -6,6 +6,7 @@ import com.zoooohs.instagramclone.configure.WithAuthUser;
 import com.zoooohs.instagramclone.domain.comment.dto.CommentDto;
 import com.zoooohs.instagramclone.domain.comment.service.CommentService;
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
+import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.exception.ErrorCode;
 import com.zoooohs.instagramclone.exception.ZooooException;
@@ -98,10 +99,8 @@ public class CommentControllerTest {
             commentDtos.add(commentDto);
         }
 
-        PageModel pageModel = PageModel.builder().index(0).size(20).build();
-
-        given(this.commentService.getPostCommentList(eq(postId), any(PageModel.class), eq(1L))).willReturn(commentDtos);
-        given(this.commentService.getPostCommentList(eq(2L), any(PageModel.class), eq(1L))).willThrow(new ZooooException(ErrorCode.POST_NOT_FOUND));
+        given(this.commentService.getPostCommentList(eq(postId), any(SearchModel.class), eq(1L))).willReturn(commentDtos);
+        given(this.commentService.getPostCommentList(eq(2L), any(SearchModel.class), eq(1L))).willThrow(new ZooooException(ErrorCode.POST_NOT_FOUND));
 
         mockMvc.perform(get(url)
                         .param("index", "0")
