@@ -1,6 +1,7 @@
 package com.zoooohs.instagramclone.domain.user.entity;
 
 import com.zoooohs.instagramclone.domain.common.entity.BaseEntity;
+import com.zoooohs.instagramclone.domain.common.type.AccountStatusType;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import lombok.Builder;
 import lombok.Getter;
@@ -43,6 +44,10 @@ public class UserEntity extends BaseEntity implements UserDetails {
     @OneToOne(fetch = FetchType.LAZY, orphanRemoval = true)
     @JoinColumn(name = "photo_id")
     private PhotoEntity photo;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private AccountStatusType status = AccountStatusType.WAITING;
 
     @Builder
     public UserEntity(Long id, String email, String password, String name) {

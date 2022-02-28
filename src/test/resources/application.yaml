@@ -26,6 +26,9 @@ logging:
 
 instagram-clone:
   version: 1.0.0
+  mail:
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
   storage:
     filesystem: ${STORAGE_FS}
   jwt:

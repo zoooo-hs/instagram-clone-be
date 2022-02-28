@@ -37,6 +37,9 @@ dependencies {
 	testImplementation 'io.findify:s3mock_2.13:0.2.6'
 	implementation 'org.springdoc:springdoc-openapi-ui:1.6.6'
 	implementation 'org.springdoc:springdoc-openapi-security:1.6.6'
+	implementation 'org.springframework:spring-context-support:5.3.16'
+	implementation 'com.sun.mail:javax.mail:1.6.2'
+	testImplementation 'com.icegreen:greenmail:1.6.6'
 }
 
 test {

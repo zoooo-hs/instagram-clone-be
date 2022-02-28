@@ -10,6 +10,7 @@ public enum ErrorCode {
 
     // 401 UNAUTHORIZED
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "만료된 토큰 입니다."),
+    USER_NOT_VERIFIED(HttpStatus.UNAUTHORIZED, "Email 인증이 완료되지 않은 계정입니다."),
 
     // 404 NOT FOUND
     LOGIN_WRONG_INFO(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),
