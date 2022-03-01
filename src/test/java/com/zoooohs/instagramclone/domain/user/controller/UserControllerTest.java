@@ -12,6 +12,7 @@ import com.zoooohs.instagramclone.exception.ErrorCode;
 import com.zoooohs.instagramclone.exception.ZooooException;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,6 +55,12 @@ public class UserControllerTest {
     UserService userService;
 
     ObjectMapper objectMapper;
+
+    @BeforeEach
+    public void setUp() {
+        objectMapper = new ObjectMapper();
+        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
+    }
 
     @DisplayName("GET /user?keyword,seach_key,index,size 입력 받아 user list 반환")
     @Test
@@ -109,9 +116,6 @@ public class UserControllerTest {
     @Test
     @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void updatePasswordTest() throws Exception {
-        objectMapper = new ObjectMapper();
-        objectMapper.setPropertyNamingStrategy(PropertyNamingStrategies.SNAKE_CASE);
-
         String url = "/user/1/password";
         String url404 = "/user/2/password";
 
@@ -142,4 +146,36 @@ public class UserControllerTest {
                 )
                 .andExpect(MockMvcResultMatchers.status().isConflict());
     }
+
+    @DisplayName("PATCH /user/{userId}/bio, body, jwt 입력 받아 변경된 bio 담긴 user dto 반환. 일치하지 않는 유저의 경우 404")
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
+    public void updateBioTest() throws Exception {
+        String url = "/user/1/bio";
+        String url404 = "/user/2/bio";
+
+        Long userId = 1L;
+
+        UserDto userDto = UserDto.builder().id(userId).name("test").email("user1@test.test").build();
+        UserDto.Info updateBio = UserDto.Info.builder().id(userId).bio("new bio").build();
+        UserDto.Info updateBio404 = UserDto.Info.builder().id(2L).bio("new bio").build();
+
+        given(userService.updateBio(eq(updateBio), eq(userDto))).willReturn(updateBio);
+        given(userService.updateBio(eq(updateBio404), eq(userDto))).willThrow(new ZooooException(ErrorCode.USER_NOT_FOUND));
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(url)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(updateBio))
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.id", Matchers.is(1)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.bio", Matchers.is(updateBio.getBio())));
+
+        mockMvc.perform(MockMvcRequestBuilders.patch(url404)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(updateBio404))
+                )
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+    }
+
 }

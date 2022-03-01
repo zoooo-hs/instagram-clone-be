@@ -37,11 +37,17 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public UserDto.Info updateBio(String bio, UserDto authUserDto) {
-        UserEntity user = this.userRepository.findById(authUserDto.getId()).orElseThrow(() -> new ZooooException(ErrorCode.USER_NOT_FOUND));
-        user.setBio(bio);
-        user = this.userRepository.save(user);
-        return this.modelMapper.map(user, UserDto.Info.class);
+    public UserDto.Info updateBio(UserDto.Info userDto, UserDto authUserDto) {
+        if (!userDto.getId().equals(authUserDto.getId())) {
+            throw new ZooooException(ErrorCode.USER_NOT_FOUND);
+        }
+        return userRepository.findById(authUserDto.getId())
+                .map(entity -> {
+                    entity.setBio(userDto.getBio());
+                    return userRepository.save(entity);
+                })
+                .map(entity -> modelMapper.map(entity,UserDto.Info.class))
+                .orElseThrow(() -> new ZooooException(ErrorCode.USER_NOT_FOUND));
     }
 
     @Override

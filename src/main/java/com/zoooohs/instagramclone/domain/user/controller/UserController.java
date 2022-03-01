@@ -58,9 +58,10 @@ public class UserController {
                     content = { @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.Info.class)) }
             ),
     })
-    @PatchMapping("/user/bio")
-    public UserDto.Info updateBio(@RequestBody UserDto.Info userDto, @AuthenticationPrincipal UserDto authUserDto) {
-        return this.userService.updateBio(userDto.getBio(), authUserDto);
+    @PatchMapping("/user/{userId}/bio")
+    public UserDto.Info updateBio(@PathVariable("userId") Long userId, @RequestBody UserDto.Info userDto, @AuthenticationPrincipal UserDto authUserDto) {
+        userDto.setId(userId);
+        return this.userService.updateBio(userDto, authUserDto);
     }
 
     @Operation(summary = "비밀번호 변경", description = "기존 비밀번호 새로운 비밀번호를 입력받아, 새로운 비밀번호로 변경한다.")

@@ -77,24 +77,35 @@ public class UserServiceTest {
         return userEntity;
     }
 
+    @DisplayName("userInfo(id, bio), userDto 입력 받아 해당 유저의 bio 변경 후 user info 반환. 유저 정보 일치하지 않으면 USER_NOT_FOUND Throw")
     @Test
-    public void shouldUpdateBio() {
+    public void updateBioTest() {
         Long id = 1L;
         String bio = "some bio";
 
         String changedBio = "another bio";
 
-        UserDto userDto = new UserDto();
-        userDto.setId(id);
-        UserEntity userEntity = makeUserEntity(id, null, bio, null);
-        UserEntity changedEntity = makeUserEntity(id, null, changedBio, null);
+        UserDto.Info updateInfo = UserDto.Info.builder().id(id).bio(changedBio).build();
+        UserDto userDto = UserDto.builder().id(id).build();
+        UserEntity userEntity = UserEntity.builder().id(id).bio(bio).build();
+        UserEntity changedEntity = UserEntity.builder().id(id).bio(changedBio).build();
 
-        given(userRepository.findById(anyLong())).willReturn(Optional.of(userEntity));
-        given(userRepository.save(any(UserEntity.class))).willReturn(changedEntity);
+        given(userRepository.findById(eq(id))).willReturn(Optional.of(userEntity));
+        given(userRepository.save(eq(changedEntity))).willReturn(changedEntity);
 
-        UserDto.Info actual = userService.updateBio(changedBio, userDto);
+        UserDto.Info actual = userService.updateBio(updateInfo, userDto);
 
         assertEquals(changedBio, actual.getBio());
+
+        try {
+            updateInfo.setId(2L);
+            userService.updateBio(updateInfo, userDto);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
     }
 
     @DisplayName("keyword, search_key=name, index, size 입력받아 keyword와 유사한 이름을 가진 user list 반환")

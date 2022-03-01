@@ -3,10 +3,7 @@ package com.zoooohs.instagramclone.domain.user.entity;
 import com.zoooohs.instagramclone.domain.common.entity.BaseEntity;
 import com.zoooohs.instagramclone.domain.common.type.AccountStatusType;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -24,6 +21,7 @@ import java.util.Collection;
                 @NamedAttributeNode("photo")
         })
 })
+@EqualsAndHashCode(of = {"name", "email", "id"})
 public class UserEntity extends BaseEntity implements UserDetails {
 
     @Email
@@ -50,11 +48,14 @@ public class UserEntity extends BaseEntity implements UserDetails {
     private AccountStatusType status = AccountStatusType.WAITING;
 
     @Builder
-    public UserEntity(Long id, String email, String password, String name) {
+    public UserEntity(Long id, String email, String password, String name, String bio, PhotoEntity photo, AccountStatusType status) {
         this.id = id;
         this.email = email;
         this.password = password;
         this.name = name;
+        this.bio = bio;
+        this.photo = photo;
+        this.status = status;
     }
 
     @Override
