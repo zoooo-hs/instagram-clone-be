@@ -7,16 +7,19 @@ import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
+import com.zoooohs.instagramclone.exception.ErrorCode;
+import com.zoooohs.instagramclone.exception.ZooooException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +27,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,10 +38,12 @@ public class UserServiceTest {
     @Spy
     ModelMapper modelMapper;
 
+    PasswordEncoder passwordEncoder;
+
     @BeforeEach
     public void init() {
-        MockitoAnnotations.openMocks(this);
-        userService = new UserServiceImpl(userRepository, modelMapper);
+        passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
+        userService = new UserServiceImpl(userRepository, passwordEncoder, modelMapper);
     }
 
     @Test
@@ -128,5 +134,60 @@ public class UserServiceTest {
         photoDto.setPath(profilePhotoPath);
         userDto.setPhoto(photoDto);
         return userDto;
+    }
+
+    @DisplayName("updatePassword Dto, userId, userDto 입력받아 비밀번호 변경 후 UserDto 반환")
+    @Test
+    public void updatePasswordTest() {
+        Long userId = 1L;
+        UserDto.UpdatePassword password = UserDto.UpdatePassword.builder().oldPassword("oldPassword").newPassword("newPassword").build();
+        UserDto userDto = UserDto.builder().name("test").email("test@test.test").id(userId).build();
+        UserEntity userEntity = UserEntity.builder().id(userId).name(userDto.getName()).email(userDto.getEmail())
+                .password(passwordEncoder.encode(password.getOldPassword()))
+                .build();
+
+        given(userRepository.findById(eq(userId))).willReturn(Optional.of(userEntity));
+        given(userRepository.save(any(UserEntity.class))).willReturn(userEntity);
+
+        UserDto.Info actual = userService.updatePassword(userId, password, userDto);
+
+        assertEquals(userDto.getName(), actual.getName());
+        assertEquals(userDto.getId(), actual.getId());
+    }
+
+    @DisplayName("userId, userDto, password 정보 일치하지 않으면 USER_NOT_FOUND Throw")
+    @Test
+    public void updatePassword404Test() {
+        Long userId = 1L;
+        UserDto.UpdatePassword password = UserDto.UpdatePassword.builder().oldPassword("oldPassword").newPassword("newPassword").build();
+        UserDto userDto = UserDto.builder().name("test").email("test@test.test").id(userId).build();
+
+        given(userRepository.findById(eq(userId))).willReturn(Optional.ofNullable(null));
+
+        try {
+            userService.updatePassword(userId, password, userDto);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @DisplayName("updatePassword에 동일한 비밀번호로 변경 시도 시 SAME_PASSWORD Throw")
+    @Test
+    public void updatePassword409Test() {
+        Long userId = 1L;
+        UserDto.UpdatePassword password = UserDto.UpdatePassword.builder().oldPassword("oldPassword").newPassword("oldPassword").build();
+        UserDto userDto = UserDto.builder().name("test").email("test@test.test").id(userId).build();
+
+        try {
+            userService.updatePassword(userId, password, userDto);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.SAME_PASSWORD, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
     }
 }

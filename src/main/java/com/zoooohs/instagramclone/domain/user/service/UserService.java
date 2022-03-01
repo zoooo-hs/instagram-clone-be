@@ -11,4 +11,6 @@ public interface UserService {
     public UserDto.Info updateBio(String bio, UserDto authUserDto);
 
     List<UserDto.Info> getUsers(SearchModel searchModel);
+
+    UserDto.Info updatePassword(Long userId, UserDto.UpdatePassword passwordDto, UserDto authUserDto);
 }

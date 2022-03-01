@@ -62,4 +62,24 @@ public class UserController {
     public UserDto.Info updateBio(@RequestBody UserDto.Info userDto, @AuthenticationPrincipal UserDto authUserDto) {
         return this.userService.updateBio(userDto.getBio(), authUserDto);
     }
+
+    @Operation(summary = "비밀번호 변경", description = "기존 비밀번호 새로운 비밀번호를 입력받아, 새로운 비밀번호로 변경한다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200", description = "변경 성공. 유저 정보 반환",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.Info.class)) }
+            ),
+            @ApiResponse(
+                    responseCode = "404", description = "유저 정보가 일치하지 않음",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ZooooExceptionResponse.class)) }
+            ),
+            @ApiResponse(
+                    responseCode = "409", description = "동일한 비밀번호로 변경 시도",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ZooooExceptionResponse.class)) }
+            ),
+    })
+    @PatchMapping("/user/{userId}/password")
+    public UserDto.Info updatePassword(@PathVariable("userId") Long userId, @RequestBody UserDto.UpdatePassword passwordDto, @AuthenticationPrincipal UserDto authUserDto) {
+        return userService.updatePassword(userId, passwordDto, authUserDto);
+    }
 }
