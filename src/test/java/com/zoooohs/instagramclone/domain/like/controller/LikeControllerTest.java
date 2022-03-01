@@ -60,7 +60,7 @@ public class LikeControllerTest {
 
     @DisplayName("POST /post/{postId}/like 입력받아 Like Json 반환, ost /post/{postId}/like 입력 받아 없는 postId 의 경우 404 반환")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void likePostTest() throws Exception {
         String url = String.format("/post/%d/like", 1L);
         String url404 = String.format("/post/%d/like", 2L);
@@ -83,7 +83,7 @@ public class LikeControllerTest {
 
     @DisplayName("POST /comment/{commentId}/like, jwt 입력 받아, like json 반환")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void likeCommentTest() throws Exception {
         String url = String.format("/comment/%d/like", 1L);
         String url404 = String.format("/comment/%d/like", 2L);
@@ -106,7 +106,7 @@ public class LikeControllerTest {
 
     @DisplayName("DELETE /like/{likeId} 입력 받아  id 담긴 json 반환")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void unlikeTest() throws Exception {
         String url = String.format("/like/%d", 1L);
         String url404 = String.format("/like/%d", 2L);

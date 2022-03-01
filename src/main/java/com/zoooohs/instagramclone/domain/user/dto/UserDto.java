@@ -2,12 +2,11 @@ package com.zoooohs.instagramclone.domain.user.dto;
 
 import com.zoooohs.instagramclone.domain.photo.dto.PhotoDto;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode
 @NoArgsConstructor
 public class UserDto {
     private Long id;

@@ -63,7 +63,7 @@ public class FollowControllerTest {
 
     @DisplayName("POST /user/{userId}/follow, jwt를 입력받아 follow json 반환, userId 없으면 404, 이미 follow 한 user면 409 반환")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void followTest() throws Exception {
         String url409 = String.format("/user/%d/follow", followUserId);
 
@@ -94,7 +94,7 @@ public class FollowControllerTest {
 
     @DisplayName("DELETE /user/{followUserId}/follow, jwt 입력 id 반환. follow가 없을 경우 404, 자기 자신을 언팔로우 할 경우 409")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void unfollowTest() throws Exception {
 
         given(followService.unfollow(eq(followUserId), eq(1L))).willReturn(1L);

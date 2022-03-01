@@ -49,7 +49,7 @@ public class PhotoControllerTest {
 
     @DisplayName("PATCH /user/{userId}/photo, multipart photo, jwt 입력 받아 User Info json 반환. jpg, png가 아닌경우 400, userId와 jwt가 일치하지 않는 경우 404 반환")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void uploadProfileTest() throws Exception {
         String url = String.format("/user/%s/photo", 1L);
         String url404 = String.format("/user/%s/photo", 2L);
@@ -76,7 +76,7 @@ public class PhotoControllerTest {
 
     @DisplayName("PATCH /user/{userId}/photo, multipart photo, jwt 입력 받아 jpg, png가 아닌경우 400")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void uploadProfileFailure400Test() throws Exception {
         String url = String.format("/user/%s/photo", 1L);
 

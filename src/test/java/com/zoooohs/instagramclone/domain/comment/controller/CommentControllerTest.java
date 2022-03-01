@@ -62,7 +62,7 @@ public class CommentControllerTest {
 
     @DisplayName("POST /post/{postId}/comment body, jwt 입력 받아, comment json return")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void createPostCommentTest() throws Exception {
         Long postId = 1L;
         String content = "comment content";
@@ -82,7 +82,7 @@ public class CommentControllerTest {
 
     @DisplayName("GET /post/{postId}/comment 입력, comment 리스트 반환, 없는 postid의 경우 404")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void getPostCommentListTest() throws Exception {
         Long postId = 1L;
         String url = String.format("/post/%d/comment", postId);
@@ -119,7 +119,7 @@ public class CommentControllerTest {
 
     @DisplayName("GET /comment/{commentId}/comment 입력, comment 리스트 반환, 없는 commentId의 경우 404")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void getCommentCommentListTest() throws Exception {
         Long commentId = 1L;
         String url = String.format("/comment/%d/comment", commentId);
@@ -156,7 +156,7 @@ public class CommentControllerTest {
 
     @DisplayName("PATCH /comment/{commentId}, body, jwt 입력 받아 comment json 반환. 없는 comment의 경우 404 return")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void updateCommentTest() throws Exception {
         String url = String.format("/comment/%d", 1L);
         String url404 = String.format("/comment/%d", 2L);
@@ -179,7 +179,7 @@ public class CommentControllerTest {
 
     @DisplayName("DELETE /comment/{commentId}, jwt 입력 받아, 댓글 삭제후 댓글 id 담긴 json 반환. 없는 댓글의 경우 404 반환")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void deleteByIdTest() throws Exception {
         String url = String.format("/comment/%d", 1L);
         String url404 = String.format("/comment/%d", 2L);
@@ -197,7 +197,7 @@ public class CommentControllerTest {
 
     @DisplayName("POST /comment/{commentId}/comment body, jwt 입력 받아, comment json return. 없는 commentId의 경우 404 반환")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void createCommentCommentTest() throws Exception {
         Long commentId = 1L;
         String content = "comment content";
