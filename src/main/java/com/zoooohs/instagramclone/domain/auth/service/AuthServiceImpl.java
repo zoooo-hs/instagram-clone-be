@@ -84,13 +84,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Boolean verification(String email, String token) {
-        UserEntity user = userRepository.findByEmail(email).orElseThrow(() -> new ZooooException(ErrorCode.USER_NOT_FOUND));
-        if (passwordEncoder.matches(user.getEmail()+user.getName(), token)) {
-            user.setStatus(AccountStatusType.VERIFIED);
-            userRepository.save(user);
-            return true;
+        UserEntity user = userRepository.findByEmail(email)
+                .filter(userEntity -> passwordEncoder.matches(userEntity.getEmail()+userEntity.getName(), token))
+                .orElseThrow(() -> new ZooooException(ErrorCode.USER_NOT_FOUND));
+        if (user.getStatus().equals(AccountStatusType.VERIFIED)) {
+            throw new ZooooException(ErrorCode.ALREADY_VERIFIED);
         }
-        throw new ZooooException(ErrorCode.USER_NOT_FOUND);
+        user.setStatus(AccountStatusType.VERIFIED);
+        userRepository.save(user);
+        return true;
     }
 
 

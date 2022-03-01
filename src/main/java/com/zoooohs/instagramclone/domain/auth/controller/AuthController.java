@@ -118,6 +118,10 @@ public class AuthController {
                     responseCode = "404", description = "요청한 인증 정보 관련된 회원 찾을 수 없음",
                     content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ZooooExceptionResponse.class)) }
             ),
+            @ApiResponse(
+                    responseCode = "409", description = "이미 검증됨",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ZooooExceptionResponse.class)) }
+            ),
     })
     @GetMapping("/auth/verification")
     public Boolean verification(@RequestParam("email") String email, @RequestParam("token") String token) {

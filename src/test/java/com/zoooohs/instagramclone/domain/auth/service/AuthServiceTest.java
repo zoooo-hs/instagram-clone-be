@@ -16,7 +16,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Spy;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -234,25 +236,50 @@ public class AuthServiceTest {
     @DisplayName("email, token 받아서 유효한 토큰이면 true 아니면 404 throw")
     @Test
     public void verificationTest() {
-        String email = "test@test.com";
-        String token = passwordEncoder.encode(email+"test");
+        final String email = "test@test.com";
+        final String token = passwordEncoder.encode(email+"test");
 
-        given(userRepository.findByEmail(eq(email))).willReturn(Optional.of(UserEntity.builder().email(email).name("test").build()));
+        given(userRepository.findByEmail(eq(email))).willAnswer(new Answer<Optional<UserEntity>>() {
+            private int count = 0;
+            @Override
+            public Optional<UserEntity> answer(InvocationOnMock invocation) throws Throwable {
+                UserEntity user = UserEntity.builder().email(email).name("test").build();
+                if (count == 0) {
+                    user.setStatus(AccountStatusType.WAITING);
+                } else {
+                    user.setStatus(AccountStatusType.VERIFIED);
+                }
+                count++;
+                return Optional.of(user);
+            }
+        });
 
+        // 통과
         boolean actual = authService.verification(email, token);
 
         assertTrue(actual);
         verify(userRepository, times(1)).save(any(UserEntity.class));
 
+        // 404
         try {
-            email = "1"+email;
-            authService.verification(email, token);
+            authService.verification("1"+email, token);
             fail();
         } catch (ZooooException e) {
             assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
         } catch (Exception e) {
             fail();
         }
+
+        // 409
+        try {
+            authService.verification(email, token);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.ALREADY_VERIFIED, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+
     }
 
 }

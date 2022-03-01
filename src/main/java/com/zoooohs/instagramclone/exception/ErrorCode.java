@@ -27,6 +27,7 @@ public enum ErrorCode {
     ALREADY_FOLLOWED_USER(HttpStatus.CONFLICT, "이미 팔로우 한 사용자 입니다."),
     FOLLOWING_SELF(HttpStatus.CONFLICT, "자기 자신은 영원한 친구 입니다."),
     SAME_PASSWORD(HttpStatus.CONFLICT, "동일한 비밀번호 입니다."),
+    ALREADY_VERIFIED(HttpStatus.CONFLICT, "이미 검증 되었습니다."),
 
     // 500 INTERNAL
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류"),

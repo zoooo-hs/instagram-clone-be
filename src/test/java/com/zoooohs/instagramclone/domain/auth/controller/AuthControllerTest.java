@@ -14,7 +14,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -27,8 +29,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Date;
 
@@ -159,7 +159,17 @@ public class AuthControllerTest {
     public void verificationTest() throws Exception {
         String url = "/auth/verification";
 
-        given(authService.verification(eq("test@test.com"), anyString())).willReturn(true);
+        given(authService.verification(eq("test@test.com"), anyString())).willAnswer(new Answer<Boolean>() {
+            private int count = 0;
+            @Override
+            public Boolean answer(InvocationOnMock invocation) throws Throwable {
+                if (count > 0) {
+                    throw new ZooooException(ErrorCode.ALREADY_VERIFIED);
+                }
+                count++;
+                return true;
+            }
+        });
         given(authService.verification(eq("test@test1.com"), anyString())).willThrow(new ZooooException(ErrorCode.USER_NOT_FOUND));
 
         mockMvc.perform(MockMvcRequestBuilders.get(url)
@@ -173,5 +183,11 @@ public class AuthControllerTest {
                         .queryParam("token", passwordEncoder.encode("test@test.com"+"test"))
                 )
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
+
+        mockMvc.perform(MockMvcRequestBuilders.get(url)
+                        .queryParam("email", "test@test.com")
+                        .queryParam("token", passwordEncoder.encode("test@test.com"+"test"))
+                )
+                .andExpect(MockMvcResultMatchers.status().isConflict());
     }
 }
