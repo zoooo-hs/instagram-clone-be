@@ -2,7 +2,7 @@ package com.zoooohs.instagramclone.domain.auth.controller;
 
 import com.zoooohs.instagramclone.domain.auth.dto.AuthDto;
 import com.zoooohs.instagramclone.domain.auth.service.AuthService;
-import com.zoooohs.instagramclone.domain.service.MailService;
+import com.zoooohs.instagramclone.domain.mail.service.MailService;
 import com.zoooohs.instagramclone.exception.ZooooExceptionResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

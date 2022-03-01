@@ -4,8 +4,6 @@ import com.icegreen.greenmail.util.GreenMail;
 import com.icegreen.greenmail.util.GreenMailUtil;
 import com.icegreen.greenmail.util.ServerSetup;
 import com.zoooohs.instagramclone.configuration.MailSenderConfiguration;
-import com.zoooohs.instagramclone.domain.service.MailService;
-import com.zoooohs.instagramclone.domain.service.MailServiceImpl;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

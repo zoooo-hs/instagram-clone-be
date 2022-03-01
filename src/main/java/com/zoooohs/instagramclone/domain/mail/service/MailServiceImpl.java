@@ -1,4 +1,4 @@
-package com.zoooohs.instagramclone.domain.service;
+package com.zoooohs.instagramclone.domain.mail.service;
 
 import com.zoooohs.instagramclone.exception.ErrorCode;
 import com.zoooohs.instagramclone.exception.ZooooException;

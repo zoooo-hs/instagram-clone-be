@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.zoooohs.instagramclone.configuration.JwtTokenProvider;
 import com.zoooohs.instagramclone.domain.auth.dto.AuthDto;
 import com.zoooohs.instagramclone.domain.auth.service.AuthService;
-import com.zoooohs.instagramclone.domain.service.MailService;
+import com.zoooohs.instagramclone.domain.mail.service.MailService;
 import com.zoooohs.instagramclone.exception.ErrorCode;
 import com.zoooohs.instagramclone.exception.ZooooException;
 import org.hamcrest.Matchers;
