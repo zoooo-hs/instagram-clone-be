@@ -29,7 +29,7 @@ logging:
           hibernate: info
 
 instagram-clone:
-  version: 1.0.0
+  version: 1.0.1
   mail:
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
