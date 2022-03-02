@@ -20,7 +20,7 @@ Spring boot 기반 프로젝트로 REST API 서버 구현 및 TDD 실습
 ## 프로젝트의 기능
 
 - 기존에 존재하는 SNS [인스타그램](https://www.instagram.com/) 백엔드 기능을 일부 사용 가능
-- 자세한 API 구성 설명은 [Swagger Hub - instagram-clone-be](https://app.swaggerhub.com/apis-docs/zoooo-hs/instagram-clone-be/1.0.0) 참고
+- 자세한 API 구성 설명은 [Swagger Hub - instagram-clone-be](https://app.swaggerhub.com/apis-docs/zoooo-hs/instagram-clone-be) 참고
   - 회원
     - 회원 가입
     - 로그인
