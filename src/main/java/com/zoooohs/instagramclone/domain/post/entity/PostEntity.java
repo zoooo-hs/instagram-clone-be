@@ -1,5 +1,6 @@
 package com.zoooohs.instagramclone.domain.post.entity;
 
+import com.zoooohs.instagramclone.domain.comment.entity.PostCommentEntity;
 import com.zoooohs.instagramclone.domain.common.entity.BaseEntity;
 import com.zoooohs.instagramclone.domain.hashtag.entity.HashTagEntity;
 import com.zoooohs.instagramclone.domain.like.entity.PostLikeEntity;
@@ -42,11 +43,14 @@ public class PostEntity extends BaseEntity {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<PhotoEntity> photos = new HashSet<>();
 
-    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
     private Set<PostLikeEntity> likes = new HashSet<>();
 
     @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = {CascadeType.MERGE, CascadeType.PERSIST}, orphanRemoval = true)
     private Set<HashTagEntity> hashTags = new HashSet<>();
+
+    @OneToMany(mappedBy = "post", fetch = FetchType.LAZY, cascade = CascadeType.REMOVE)
+    private Set<PostCommentEntity> comments = new HashSet<>();
 
     public Long getLikeCount() {
         return (long) likes.size();

@@ -10,6 +10,7 @@ public enum ErrorCode {
 
     // 401 UNAUTHORIZED
     TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "만료된 토큰 입니다."),
+    USER_NOT_VERIFIED(HttpStatus.UNAUTHORIZED, "Email 인증이 완료되지 않은 계정입니다."),
 
     // 404 NOT FOUND
     LOGIN_WRONG_INFO(HttpStatus.NOT_FOUND, "사용자 정보를 찾을 수 없습니다."),
@@ -25,6 +26,8 @@ public enum ErrorCode {
     ALREADY_LIKED_COMMENT(HttpStatus.CONFLICT, "이미 좋아요 한 댓글 입니다."),
     ALREADY_FOLLOWED_USER(HttpStatus.CONFLICT, "이미 팔로우 한 사용자 입니다."),
     FOLLOWING_SELF(HttpStatus.CONFLICT, "자기 자신은 영원한 친구 입니다."),
+    SAME_PASSWORD(HttpStatus.CONFLICT, "동일한 비밀번호 입니다."),
+    ALREADY_VERIFIED(HttpStatus.CONFLICT, "이미 검증 되었습니다."),
 
     // 500 INTERNAL
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 내부 오류"),

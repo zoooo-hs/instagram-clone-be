@@ -10,4 +10,5 @@ import java.lang.annotation.RetentionPolicy;
 public @interface WithAuthUser {
     long id();
     String email();
+    String name();
 }

@@ -4,17 +4,21 @@ import com.zoooohs.instagramclone.configuration.JwtTokenProvider;
 import com.zoooohs.instagramclone.domain.auth.dto.AuthDto;
 import com.zoooohs.instagramclone.domain.auth.entity.RefreshTokenEntity;
 import com.zoooohs.instagramclone.domain.auth.repository.RefreshTokenRepository;
+import com.zoooohs.instagramclone.domain.common.type.AccountStatusType;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
 import com.zoooohs.instagramclone.exception.ErrorCode;
 import com.zoooohs.instagramclone.exception.ZooooException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Spy;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -27,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class AuthServiceTest {
@@ -86,10 +90,9 @@ public class AuthServiceTest {
         given(this.userRepository.findByEmailAndName(eq(email), eq(name))).willReturn(Optional.ofNullable(null));
         given(this.userRepository.save(any(UserEntity.class))).willReturn(user);
 
-        AuthDto.Token actual = this.authService.signUp(signUpDto);
+        String actual = this.authService.signUp(signUpDto);
 
-        assertEquals(email, this.jwtTokenProvider.getAccessTokenUserId(actual.getAccessToken()));
-        assertEquals(email, this.jwtTokenProvider.getRefreshTokenUserId(actual.getRefreshToken()));
+        assertTrue(passwordEncoder.matches(user.getEmail()+user.getName(), actual));
     }
 
     @Test
@@ -112,6 +115,7 @@ public class AuthServiceTest {
     public void singInTest() {
         AuthDto.SignIn signInDto = AuthDto.SignIn.builder().email(testUser.getEmail()).password(testUserPasswdDecode).build();
 
+        testUser.setStatus(AccountStatusType.VERIFIED);
         given(this.userRepository.findByEmail(eq(testUser.getEmail()))).willReturn(Optional.of(testUser));
 
         AuthDto.Token actual = this.authService.signIn(signInDto);
@@ -119,14 +123,33 @@ public class AuthServiceTest {
         assertEquals(testUser.getEmail(), jwtTokenProvider.getAccessTokenUserId(actual.getAccessToken()));
     }
 
+    @DisplayName("인증 받지 않은 계정 DTO -> USER_NOT_VERIFIED throw")
     @Test
-    public void singInFailureTest() {
+    public void singInFailure401Test() {
+        AuthDto.SignIn signInDto = AuthDto.SignIn.builder().email(testUser.getEmail()).password("passwd").build();
+
+        testUser.setStatus(AccountStatusType.WAITING);
+        given(this.userRepository.findByEmail(eq(testUser.getEmail()))).willReturn(Optional.of(testUser));
+
+        try {
+            authService.signIn(signInDto);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.USER_NOT_VERIFIED, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+    }
+
+    @DisplayName("올바르지 못한 계정 정보 로그인 -> LOGIN_WRONG_INFO throw")
+    @Test
+    public void singInFailure404Test() {
         AuthDto.SignIn signInDto = AuthDto.SignIn.builder().email(testUser.getEmail()).password("wrong-passwd").build();
 
         given(this.userRepository.findByEmail(eq(testUser.getEmail()))).willReturn(Optional.of(testUser));
 
         try {
-            this.authService.signIn(signInDto);
+            authService.signIn(signInDto);
             fail();
         } catch (ZooooException e) {
             assertEquals(ErrorCode.LOGIN_WRONG_INFO, e.getErrorCode());
@@ -209,4 +232,54 @@ public class AuthServiceTest {
         assertTrue(duplicatedActual);
         assertFalse(notDuplicatedActual);
     }
+
+    @DisplayName("email, token 받아서 유효한 토큰이면 true 아니면 404 throw")
+    @Test
+    public void verificationTest() {
+        final String email = "test@test.com";
+        final String token = passwordEncoder.encode(email+"test");
+
+        given(userRepository.findByEmail(eq(email))).willAnswer(new Answer<Optional<UserEntity>>() {
+            private int count = 0;
+            @Override
+            public Optional<UserEntity> answer(InvocationOnMock invocation) throws Throwable {
+                UserEntity user = UserEntity.builder().email(email).name("test").build();
+                if (count == 0) {
+                    user.setStatus(AccountStatusType.WAITING);
+                } else {
+                    user.setStatus(AccountStatusType.VERIFIED);
+                }
+                count++;
+                return Optional.of(user);
+            }
+        });
+
+        // 통과
+        boolean actual = authService.verification(email, token);
+
+        assertTrue(actual);
+        verify(userRepository, times(1)).save(any(UserEntity.class));
+
+        // 404
+        try {
+            authService.verification("1"+email, token);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+
+        // 409
+        try {
+            authService.verification(email, token);
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.ALREADY_VERIFIED, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+
+    }
+
 }

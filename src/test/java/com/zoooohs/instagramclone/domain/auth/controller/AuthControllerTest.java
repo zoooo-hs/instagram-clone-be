@@ -5,26 +5,37 @@ import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.zoooohs.instagramclone.configuration.JwtTokenProvider;
 import com.zoooohs.instagramclone.domain.auth.dto.AuthDto;
 import com.zoooohs.instagramclone.domain.auth.service.AuthService;
+import com.zoooohs.instagramclone.domain.mail.service.MailService;
+import com.zoooohs.instagramclone.exception.ErrorCode;
+import com.zoooohs.instagramclone.exception.ZooooException;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Spy;
+import org.mockito.invocation.InvocationOnMock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import java.util.Base64;
 import java.util.Date;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 @WebMvcTest(controllers = AuthController.class)
 @ExtendWith(MockitoExtension.class)
@@ -43,9 +54,15 @@ public class AuthControllerTest {
     @MockBean
     AuthService authService;
 
+    @MockBean
+    MailService mailService;
+
+    PasswordEncoder passwordEncoder;
+
     @BeforeEach
     public void setUp() {
         objectMapper = new ObjectMapper();
+        passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
 
     @Test
@@ -61,12 +78,15 @@ public class AuthControllerTest {
         signUpDto.setPassword(password);
         signUpDto.setName(name);
 
-        given(authService.signUp(any(AuthDto.SignUp.class))).willReturn(getToken());
+        given(authService.signUp(any(AuthDto.SignUp.class))).willReturn(Base64.getEncoder().encode((signUpDto.getEmail()+signUpDto.getName()).getBytes()).toString());
 
         mockMvc.perform(MockMvcRequestBuilders.post(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(signUpDto)))
-                .andExpect(MockMvcResultMatchers.status().isOk());
+                        .header("origin", "localhost:8080")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(signUpDto)))
+                .andExpect(MockMvcResultMatchers.status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$", Matchers.is("OK")));
+        verify(mailService, times(1)).send(anyString(), anyString(), anyString());
     }
 
     @Test
@@ -76,16 +96,21 @@ public class AuthControllerTest {
         Date now = new Date();
         String email = "sign-up-test-id"+now.getTime()+"@email.com";
         String password = "passwd";
-        AuthDto.SignIn signIn = new AuthDto.SignIn();
-        signIn.setEmail(email);
-        signIn.setPassword(password);
+        AuthDto.SignIn signIn = AuthDto.SignIn.builder().email(email).password(password).build();
+        AuthDto.SignIn signIn401 = AuthDto.SignIn.builder().email("1"+email).password(password).build();
 
-        given(authService.signIn(any(AuthDto.SignIn.class))).willReturn(getToken());
+        given(authService.signIn(eq(signIn))).willReturn(getToken());
+        given(authService.signIn(eq(signIn401))).willThrow(new ZooooException(ErrorCode.USER_NOT_VERIFIED));
 
         mockMvc.perform(MockMvcRequestBuilders.post(url)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsBytes(signIn)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(signIn)))
                 .andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.post(url)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(signIn401)))
+                .andExpect(MockMvcResultMatchers.status().isUnauthorized());
     }
 
     @Test
@@ -127,5 +152,42 @@ public class AuthControllerTest {
 
     private AuthDto.Token getToken() {
         return AuthDto.Token.builder().accessToken("a.b.c").refreshToken("a.b.c").build();
+    }
+
+    @DisplayName("GET /auth/verification?email=&token= 토큰 맞으면 true, 아니면 404")
+    @Test
+    public void verificationTest() throws Exception {
+        String url = "/auth/verification";
+
+        given(authService.verification(eq("test@test.com"), anyString())).willAnswer(new Answer<Boolean>() {
+            private int count = 0;
+            @Override
+            public Boolean answer(InvocationOnMock invocation) throws Throwable {
+                if (count > 0) {
+                    throw new ZooooException(ErrorCode.ALREADY_VERIFIED);
+                }
+                count++;
+                return true;
+            }
+        });
+        given(authService.verification(eq("test@test1.com"), anyString())).willThrow(new ZooooException(ErrorCode.USER_NOT_FOUND));
+
+        mockMvc.perform(MockMvcRequestBuilders.get(url)
+                        .queryParam("email", "test@test.com")
+                        .queryParam("token", passwordEncoder.encode("test@test.com"+"test"))
+                )
+                .andExpect(MockMvcResultMatchers.status().isOk());
+
+        mockMvc.perform(MockMvcRequestBuilders.get(url)
+                        .queryParam("email", "test@test1.com")
+                        .queryParam("token", passwordEncoder.encode("test@test.com"+"test"))
+                )
+                .andExpect(MockMvcResultMatchers.status().isNotFound());
+
+        mockMvc.perform(MockMvcRequestBuilders.get(url)
+                        .queryParam("email", "test@test.com")
+                        .queryParam("token", passwordEncoder.encode("test@test.com"+"test"))
+                )
+                .andExpect(MockMvcResultMatchers.status().isConflict());
     }
 }

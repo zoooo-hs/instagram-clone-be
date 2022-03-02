@@ -84,7 +84,7 @@ public class PostControllerTest {
 
 
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void createTest() throws Exception {
         String url = "/post";
 
@@ -110,7 +110,7 @@ public class PostControllerTest {
     }
 
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void readTest() throws Exception {
         String url = "/post";
 
@@ -134,7 +134,7 @@ public class PostControllerTest {
 
     @DisplayName("hash tag 기반 게시글 조회")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void getFeedByHashTagTest() throws Exception {
         String url = "/post";
 
@@ -160,7 +160,7 @@ public class PostControllerTest {
     }
 
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void findAllByUserIdTest() throws Exception {
         String url = String.format("/user/%d/post", user.getId());
 
@@ -187,7 +187,7 @@ public class PostControllerTest {
     }
 
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void updateDescriptionTest() throws Exception {
         String url = String.format("/post/%d/description", 1l);
 
@@ -208,7 +208,7 @@ public class PostControllerTest {
     }
 
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 2L)
+    @WithAuthUser(email = "user1@test.test", id = 2L, name = "test")
     public void updateDescriptionFailureTest() throws Exception {
         String url = String.format("/post/%d/description", 1l);
 
@@ -221,7 +221,7 @@ public class PostControllerTest {
     }
 
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void deleteByIdTest() throws Exception {
         String url = String.format("/post/%d", 1l);
 

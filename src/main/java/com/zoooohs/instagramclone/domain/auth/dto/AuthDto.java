@@ -34,8 +34,10 @@ public class AuthDto {
     }
 
     @Schema(name = "AuthDto.SignIn")
-    @Data
+    @Getter
+    @Setter
     @NoArgsConstructor
+    @EqualsAndHashCode
     public static class SignIn {
         @NotNull
         @Email

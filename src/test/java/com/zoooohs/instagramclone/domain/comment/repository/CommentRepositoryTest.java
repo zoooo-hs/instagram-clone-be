@@ -1,8 +1,8 @@
 package com.zoooohs.instagramclone.domain.comment.repository;
 
+import com.zoooohs.instagramclone.domain.comment.entity.CommentCommentEntity;
 import com.zoooohs.instagramclone.domain.comment.entity.CommentEntity;
-import com.zoooohs.instagramclone.domain.like.entity.CommentLikeEntity;
-import com.zoooohs.instagramclone.domain.like.repository.CommentLikeRepository;
+import com.zoooohs.instagramclone.domain.comment.entity.PostCommentEntity;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
@@ -13,16 +13,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import javax.persistence.EntityManager;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -32,7 +28,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CommentRepositoryTest {
 
     @Autowired
-    CommentRepository commentRepository;
+    PostCommentRepository postCommentRepository;
 
     @Autowired
     UserRepository userRepository;
@@ -41,7 +37,10 @@ public class CommentRepositoryTest {
     PostRepository postRepository;
 
     @Autowired
-    CommentLikeRepository commentLikeRepository;
+    CommentCommentRepository commentCommentRepository;
+
+    @Autowired
+    CommentRepository commentRepository;
 
     @Autowired
     EntityManager entityManager;
@@ -49,6 +48,7 @@ public class CommentRepositoryTest {
     private PasswordEncoder passwordEncoder;
     private PostEntity post;
     private UserEntity user;
+    private PostCommentEntity comment;
 
 
     @BeforeEach
@@ -65,87 +65,44 @@ public class CommentRepositoryTest {
         user = this.userRepository.save(user);
         post = PostEntity.builder().description("post1").user(user).build();
         post = this.postRepository.save(post);
-    }
-
-    @DisplayName("comment save 테스트")
-    @Test
-    public void saveTest() {
-        CommentEntity comment = new CommentEntity();
+        comment = new PostCommentEntity();
         comment.setContent("content");
         comment.setUser(user);
         comment.setPost(post);
-
-        CommentEntity actual = this.commentRepository.save(comment);
-
-        assertEquals(comment.getContent(), actual.getContent());
-        assertTrue(actual.getId() != null);
+        postCommentRepository.save(comment);
     }
 
-    @DisplayName("comment repository findByPostId, postId로 comment list 받아오기 테스트")
+    @DisplayName("id로 comment 찾기 테스트")
     @Test
-    public void findByPostIdTest() {
-        List<CommentEntity> testList = new ArrayList<>();
-        for (int i = 0; i < 30; i++) {
-            CommentEntity comment = new CommentEntity();
-            comment.setContent("content");
-            comment.setUser(user);
-            comment.setPost(post);
-            testList.add(comment);
-        }
-        this.commentRepository.saveAll(testList);
+    public void findByIdTest() {
+        CommentCommentEntity commentCommentEntity = CommentCommentEntity.builder()
+                .content("new Content")
+                .comment(comment)
+                .user(user)
+                .build();
 
-        int pageSize = 20;
-        Pageable pageable = PageRequest.of(0, pageSize);
 
-        List<CommentEntity> actual = this.commentRepository.findByPostId(post.getId(), pageable);
-
-        assertNotEquals(null, actual);
-        assertEquals(pageSize, actual.size());
-    }
-
-    @DisplayName("findByPostId comment entity list SELECT 할때 likes같이 반환")
-    @Test
-    public void findByPostIdWithLikesTest() {
-        List<CommentEntity> testList = new ArrayList<>();
-        for (int i = 0; i < 20; i++) {
-            CommentEntity comment = new CommentEntity();
-            comment.setContent("content");
-            comment.setUser(user);
-            comment.setPost(post);
-            testList.add(comment);
-        }
-
-        this.commentRepository.saveAll(testList);
-
-        CommentLikeEntity commentLike = new CommentLikeEntity();
-        commentLike.setComment(testList.get(0));
-        commentLike.setUser(user);
-
-        commentLikeRepository.save(commentLike);
+        commentCommentRepository.save(commentCommentEntity);
+        Long commentId = commentCommentEntity.getId();
 
         entityManager.flush();
         entityManager.clear();
 
 
-        int pageSize = 20;
-        Pageable pageable = PageRequest.of(0, pageSize);
+        CommentEntity actual = commentRepository.findById(commentId).orElse(null);
 
-        List<CommentEntity> actual = this.commentRepository.findByPostId(post.getId(), pageable);
-
-        assertNotEquals(null, actual);
-        assertEquals(pageSize, actual.size());
-        assertEquals(1, actual.get(0).getLikeCount());
-        assertTrue(actual.get(0).getLikes().stream().filter(l -> l.getUser().getId().equals(user.getId())).findFirst().isPresent());
+        assertNotNull(actual);
+        assertEquals(commentCommentEntity.getContent(), actual.getContent());
     }
 
     @DisplayName("commentRepository.findByIdAndUserId commentId, userId 받아와서 해당 유저의 댓글 가져오는 기능 테스트")
     @Test
     public void findByIdAndUserIdTest() {
-        CommentEntity comment = new CommentEntity();
+        PostCommentEntity comment = new PostCommentEntity();
         comment.setContent("content22");
         comment.setUser(user);
         comment.setPost(post);
-        comment = this.commentRepository.save(comment);
+        comment = this.postCommentRepository.save(comment);
 
         CommentEntity actual = this.commentRepository.findByIdAndUserId(comment.getId(), user.getId());
         CommentEntity actualNull = this.commentRepository.findByIdAndUserId(comment.getId(), user.getId()+3L);
@@ -159,16 +116,37 @@ public class CommentRepositoryTest {
     @DisplayName("comment Repository delete(commentEntity)로 댓글 삭제 테스트")
     @Test
     public void deleteTest() {
-        CommentEntity comment = new CommentEntity();
+        PostCommentEntity comment = new PostCommentEntity();
         comment.setContent("content22");
         comment.setUser(user);
         comment.setPost(post);
-        comment = this.commentRepository.save(comment);
+        comment = this.postCommentRepository.save(comment);
 
         Long commentId = comment.getId();
 
         this.commentRepository.delete(comment);
 
         assertThrows(Exception.class, () -> commentRepository.findById(commentId).orElseThrow(() -> new Exception()));
+    }
+
+    @DisplayName("대댓글의 원글 삭제시, 대댓글도 같이 삭제")
+    @Test
+    public void deleteCascadeTest() {
+        PostCommentEntity comment = new PostCommentEntity();
+        comment.setContent("content22");
+        comment.setUser(user);
+        comment.setPost(post);
+        comment = this.postCommentRepository.save(comment);
+
+        CommentCommentEntity commentComment = CommentCommentEntity.builder()
+                .comment(comment)
+                .user(user)
+                .content("asdf")
+                .build();
+
+
+        this.commentRepository.delete(comment);
+
+        assertTrue(true);
     }
 }

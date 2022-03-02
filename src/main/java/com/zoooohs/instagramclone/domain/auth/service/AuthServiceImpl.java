@@ -4,6 +4,7 @@ import com.zoooohs.instagramclone.configuration.JwtTokenProvider;
 import com.zoooohs.instagramclone.domain.auth.dto.AuthDto;
 import com.zoooohs.instagramclone.domain.auth.entity.RefreshTokenEntity;
 import com.zoooohs.instagramclone.domain.auth.repository.RefreshTokenRepository;
+import com.zoooohs.instagramclone.domain.common.type.AccountStatusType;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
 import com.zoooohs.instagramclone.exception.ErrorCode;
@@ -28,7 +29,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public AuthDto.Token signUp(AuthDto.SignUp signUp) {
+    public String signUp(AuthDto.SignUp signUp) {
         Optional<UserEntity> duplicated = this.userRepository.findByEmailAndName(signUp.getEmail(), signUp.getName());
         if (duplicated.isPresent()) {
             throw new ZooooException(ErrorCode.SIGN_UP_DUPLICATED_EMAIL_OR_NAME);
@@ -36,15 +37,18 @@ public class AuthServiceImpl implements AuthService {
         UserEntity user = this.modelMapper.map(signUp, UserEntity.class);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         this.userRepository.save(user).getId();
-        return generateNewToken(user.getUsername());
+        // TODO: verification code 만드는 방법 다시 조사하기
+        return passwordEncoder.encode(user.getEmail()+user.getName());
     }
 
     @Override
     @Transactional
     public AuthDto.Token signIn(AuthDto.SignIn signIn) {
-        UserEntity user = this.userRepository.findByEmail(signIn.getEmail()).orElseThrow(() -> new ZooooException(ErrorCode.LOGIN_WRONG_INFO));
-        if (!passwordEncoder.matches(signIn.getPassword(), user.getPassword())) {
-            throw new ZooooException(ErrorCode.LOGIN_WRONG_INFO);
+        UserEntity user = this.userRepository.findByEmail(signIn.getEmail())
+                .filter(userEntity -> passwordEncoder.matches(signIn.getPassword(), userEntity.getPassword()))
+                .orElseThrow(() -> new ZooooException(ErrorCode.LOGIN_WRONG_INFO));
+        if (user.getStatus().equals(AccountStatusType.WAITING)) {
+            throw new ZooooException(ErrorCode.USER_NOT_VERIFIED);
         }
         return generateNewToken(user.getUsername());
     }
@@ -77,6 +81,20 @@ public class AuthServiceImpl implements AuthService {
         UserEntity user = this.userRepository.findByName(name).orElse(null);
         return user != null;
     }
+
+    @Override
+    public Boolean verification(String email, String token) {
+        UserEntity user = userRepository.findByEmail(email)
+                .filter(userEntity -> passwordEncoder.matches(userEntity.getEmail()+userEntity.getName(), token))
+                .orElseThrow(() -> new ZooooException(ErrorCode.USER_NOT_FOUND));
+        if (user.getStatus().equals(AccountStatusType.VERIFIED)) {
+            throw new ZooooException(ErrorCode.ALREADY_VERIFIED);
+        }
+        user.setStatus(AccountStatusType.VERIFIED);
+        userRepository.save(user);
+        return true;
+    }
+
 
     @Transactional
     private AuthDto.Token generateNewToken(String userName) {

@@ -1,6 +1,6 @@
 # Instagram Clone Project (Backend)
 
-![Generic badge](https://img.shields.io/badge/version-1.0.0-green.svg)
+![Generic badge](https://img.shields.io/badge/version-1.0.1-green.svg)
 
 ## 목차
 
@@ -85,6 +85,10 @@ Spring boot 기반 프로젝트로 REST API 서버 구현 및 TDD 실습
     - database 사용자 ID
   - DB_PASSWORD
     - database 사용자 PASSWORD
+  - MAIL_USERNAME
+    - 회원 인증 메일 전송을 위한 Gmail 계정 ID
+  - MAIL_PASSWORD
+    - 회원 인증 메일 전송을 위한 Gmail 계정 비밀 번호
 - 선택 입력
   - ACCESS_TOKEN_VALID_TIME
     - access token 만료 시간
@@ -108,10 +112,11 @@ cd instagram-clone-be
 ```bash
 docker run --name instagram-clone -e DB_URL=localhost ... \ #환경 변수 설정 ... 
 	-p 8080:8080 \	
-	dogfooter/instagram-clone-be:1.0.0
+	dogfooter/instagram-clone-be:1.0.1
 ```
 
 ## 변경사항 및 TODO
+- [2022/03/02 (1.0.1 릴리즈)](https://dogfooter219.notion.site/1-0-1-91a10bbc10e741fc9f57c602d47a4e7d)
 - [2022/02/21 (1.0.0 릴리즈)](https://dogfooter219.notion.site/1-0-0-e4307c1f5b1c4b5baf0d9754dc442284)
 - [2022/02/12](https://dogfooter219.notion.site/2022-02-3-3c0bd58d436a462b94880dcf3a366e33)
 - [2022/02/08](https://dogfooter219.notion.site/2022-02-2-b66133f5680a4094bba04662b2975ad8)

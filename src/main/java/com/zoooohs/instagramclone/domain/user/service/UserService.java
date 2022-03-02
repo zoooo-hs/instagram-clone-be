@@ -6,9 +6,11 @@ import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import java.util.List;
 
 public interface UserService {
-    public UserDto.Info getInfo(Long userId);
+    UserDto.Info getInfo(Long userId);
 
-    public UserDto.Info updateBio(String bio, UserDto authUserDto);
+    UserDto.Info updateBio(UserDto.Info userDto, UserDto authUserDto);
 
     List<UserDto.Info> getUsers(SearchModel searchModel);
+
+    UserDto.Info updatePassword(Long userId, UserDto.UpdatePassword passwordDto, UserDto authUserDto);
 }

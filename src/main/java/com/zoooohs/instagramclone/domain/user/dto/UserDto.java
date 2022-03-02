@@ -2,12 +2,11 @@ package com.zoooohs.instagramclone.domain.user.dto;
 
 import com.zoooohs.instagramclone.domain.photo.dto.PhotoDto;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode
 @NoArgsConstructor
 public class UserDto {
     private Long id;
@@ -54,6 +53,28 @@ public class UserDto {
             this.name = name;
             this.bio = bio;
             this.photo = photo;
+        }
+    }
+
+    @Schema(name = "UserDto.UpdatePassword", description = "비밀 번호 변경을 위한 DTO")
+    @Getter
+    @Setter
+    @EqualsAndHashCode
+    @NoArgsConstructor
+    public static class UpdatePassword {
+        @Schema(description = "기존 비밀번호")
+        private String oldPassword;
+        @Schema(description = "새로운 비밀번호")
+        private String newPassword;
+
+        public boolean isSamePassword() {
+            return oldPassword.equals(newPassword);
+        }
+
+        @Builder
+        public UpdatePassword(String oldPassword, String newPassword) {
+            this.oldPassword = oldPassword;
+            this.newPassword = newPassword;
         }
     }
 

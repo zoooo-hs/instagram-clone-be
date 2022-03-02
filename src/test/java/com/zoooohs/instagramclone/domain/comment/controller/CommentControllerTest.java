@@ -6,6 +6,7 @@ import com.zoooohs.instagramclone.configure.WithAuthUser;
 import com.zoooohs.instagramclone.domain.comment.dto.CommentDto;
 import com.zoooohs.instagramclone.domain.comment.service.CommentService;
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
+import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.exception.ErrorCode;
 import com.zoooohs.instagramclone.exception.ZooooException;
@@ -61,15 +62,15 @@ public class CommentControllerTest {
 
     @DisplayName("POST /post/{postId}/comment body, jwt 입력 받아, comment json return")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
-    public void isOkTest() throws Exception {
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
+    public void createPostCommentTest() throws Exception {
         Long postId = 1L;
         String content = "comment content";
         String url = String.format("/post/%d/comment", postId);
         CommentDto commentDto = CommentDto.builder().content(content).build();
         commentDto.setId(1L);
 
-        given(this.commentService.create(any(CommentDto.class), anyLong(), any(UserDto.class))).willReturn(commentDto);
+        given(this.commentService.createPostComment(any(CommentDto.class), anyLong(), any(UserDto.class))).willReturn(commentDto);
 
         mockMvc.perform(post(url)
                 .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -81,7 +82,7 @@ public class CommentControllerTest {
 
     @DisplayName("GET /post/{postId}/comment 입력, comment 리스트 반환, 없는 postid의 경우 404")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void getPostCommentListTest() throws Exception {
         Long postId = 1L;
         String url = String.format("/post/%d/comment", postId);
@@ -98,10 +99,45 @@ public class CommentControllerTest {
             commentDtos.add(commentDto);
         }
 
-        PageModel pageModel = PageModel.builder().index(0).size(20).build();
+        given(this.commentService.getPostCommentList(eq(postId), any(SearchModel.class), eq(1L))).willReturn(commentDtos);
+        given(this.commentService.getPostCommentList(eq(2L), any(SearchModel.class), eq(1L))).willThrow(new ZooooException(ErrorCode.POST_NOT_FOUND));
 
-        given(this.commentService.getPostCommentList(eq(postId), any(PageModel.class), eq(1L))).willReturn(commentDtos);
-        given(this.commentService.getPostCommentList(eq(2L), any(PageModel.class), eq(1L))).willThrow(new ZooooException(ErrorCode.POST_NOT_FOUND));
+        mockMvc.perform(get(url)
+                        .param("index", "0")
+                        .param("size", "20")
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.hasSize(commentDtos.size())))
+                .andExpect(jsonPath("$[0].like_count", Matchers.instanceOf(Integer.class)))
+                .andExpect(jsonPath("$[0].liked", Matchers.instanceOf(Boolean.class)))
+        ;
+
+        mockMvc.perform(get(url404))
+                .andExpect(status().isNotFound());
+
+    }
+
+    @DisplayName("GET /comment/{commentId}/comment 입력, comment 리스트 반환, 없는 commentId의 경우 404")
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
+    public void getCommentCommentListTest() throws Exception {
+        Long commentId = 1L;
+        String url = String.format("/comment/%d/comment", commentId);
+        String url404 = String.format("/comment/%d/comment", 2L);
+
+        ArrayList<CommentDto> commentDtos = new ArrayList<>();
+        for (int i = 0; i < 20; i++) {
+            CommentDto commentDto = CommentDto.builder()
+                    .content("content " + i)
+                    .user(UserDto.Feed.builder().name("user"+1).id((long) i).build())
+                    .likeCount((long) 0)
+                    .isLiked(false)
+                    .build();
+            commentDtos.add(commentDto);
+        }
+
+        given(this.commentService.getCommentCommentList(eq(commentId), any(PageModel.class), eq(1L))).willReturn(commentDtos);
+        given(this.commentService.getCommentCommentList(eq(2L), any(PageModel.class), eq(1L))).willThrow(new ZooooException(ErrorCode.COMMENT_NOT_FOUND));
 
         mockMvc.perform(get(url)
                         .param("index", "0")
@@ -120,7 +156,7 @@ public class CommentControllerTest {
 
     @DisplayName("PATCH /comment/{commentId}, body, jwt 입력 받아 comment json 반환. 없는 comment의 경우 404 return")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void updateCommentTest() throws Exception {
         String url = String.format("/comment/%d", 1L);
         String url404 = String.format("/comment/%d", 2L);
@@ -143,7 +179,7 @@ public class CommentControllerTest {
 
     @DisplayName("DELETE /comment/{commentId}, jwt 입력 받아, 댓글 삭제후 댓글 id 담긴 json 반환. 없는 댓글의 경우 404 반환")
     @Test
-    @WithAuthUser(email = "user1@test.test", id = 1L)
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void deleteByIdTest() throws Exception {
         String url = String.format("/comment/%d", 1L);
         String url404 = String.format("/comment/%d", 2L);
@@ -157,5 +193,33 @@ public class CommentControllerTest {
 
         mockMvc.perform(delete(url404))
                 .andExpect(status().isNotFound());
+    }
+
+    @DisplayName("POST /comment/{commentId}/comment body, jwt 입력 받아, comment json return. 없는 commentId의 경우 404 반환")
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
+    public void createCommentCommentTest() throws Exception {
+        Long commentId = 1L;
+        String content = "comment content";
+        String url = String.format("/comment/%d/comment", commentId);
+        String url404 = String.format("/comment/%d/comment", 22L);
+        CommentDto commentDto = CommentDto.builder().content(content).build();
+        commentDto.setId(1L);
+
+        given(this.commentService.createCommentComment(any(CommentDto.class), eq(1L), any(UserDto.class))).willReturn(commentDto);
+        given(this.commentService.createCommentComment(any(CommentDto.class), eq(22L), any(UserDto.class))).willThrow(new ZooooException(ErrorCode.COMMENT_NOT_FOUND));
+
+        mockMvc.perform(post(url)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsBytes(commentDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id", Matchers.instanceOf(Integer.class)))
+                .andExpect(jsonPath("$.content", Matchers.is(content)));
+
+        mockMvc.perform(post(url404)
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(objectMapper.writeValueAsBytes(commentDto)))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.code", Matchers.is(ErrorCode.COMMENT_NOT_FOUND.name())));
     }
 }

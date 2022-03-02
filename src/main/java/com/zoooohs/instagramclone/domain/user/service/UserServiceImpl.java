@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
 
     @Transactional(readOnly = true)
@@ -35,11 +37,17 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public UserDto.Info updateBio(String bio, UserDto authUserDto) {
-        UserEntity user = this.userRepository.findById(authUserDto.getId()).orElseThrow(() -> new ZooooException(ErrorCode.USER_NOT_FOUND));
-        user.setBio(bio);
-        user = this.userRepository.save(user);
-        return this.modelMapper.map(user, UserDto.Info.class);
+    public UserDto.Info updateBio(UserDto.Info userDto, UserDto authUserDto) {
+        if (!userDto.getId().equals(authUserDto.getId())) {
+            throw new ZooooException(ErrorCode.USER_NOT_FOUND);
+        }
+        return userRepository.findById(authUserDto.getId())
+                .map(entity -> {
+                    entity.setBio(userDto.getBio());
+                    return userRepository.save(entity);
+                })
+                .map(entity -> modelMapper.map(entity,UserDto.Info.class))
+                .orElseThrow(() -> new ZooooException(ErrorCode.USER_NOT_FOUND));
     }
 
     @Override
@@ -51,5 +59,25 @@ public class UserServiceImpl implements UserService {
         }
         return Optional.ofNullable(users).map(Collection::stream)
                 .map(stream -> stream.map(entity -> modelMapper.map(entity, UserDto.Info.class)).collect(Collectors.toList())).orElse(List.of());
+    }
+
+    @Override
+    public UserDto.Info updatePassword(Long userId, UserDto.UpdatePassword passwordDto, UserDto authUserDto) {
+        // same password 검증. 보안을 위해 same password 를 먼저 검사
+        if (passwordDto.isSamePassword()) {
+            throw new ZooooException(ErrorCode.SAME_PASSWORD);
+        }
+        // user 검증
+        if (!userId.equals(authUserDto.getId())) {
+            throw new ZooooException(ErrorCode.USER_NOT_FOUND);
+        }
+        UserEntity user = userRepository.findById(userId)
+                .filter(userEntity -> passwordEncoder.matches(passwordDto.getOldPassword(), userEntity.getPassword()))
+                .orElseThrow(() -> new ZooooException(ErrorCode.USER_NOT_FOUND));
+        // password update
+        user.setPassword(passwordEncoder.encode(passwordDto.getNewPassword()));
+        user = userRepository.save(user);
+        // map to user info
+        return modelMapper.map(user, UserDto.Info.class);
     }
 }

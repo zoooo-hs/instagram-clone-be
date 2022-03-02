@@ -28,13 +28,16 @@ public class CommentDto {
     @Schema(name = "liked", description = "내가 좋아요를 눌렀는지 여부")
     private Boolean isLiked;
 
+    @Schema(description = "대댓글 개수")
+    private Long commentCount;
 
     @Builder
-    public CommentDto(Long id, String content, UserDto.Feed user, Long likeCount, Boolean isLiked) {
+    public CommentDto(Long id, String content, UserDto.Feed user, Long likeCount, Boolean isLiked, Long commentCount) {
         this.id = id;
         this.content = content;
         this.user = user;
         this.likeCount = likeCount;
         this.isLiked = isLiked;
+        this.commentCount = commentCount;
     }
 }

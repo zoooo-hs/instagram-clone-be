@@ -1,10 +1,13 @@
 package com.zoooohs.instagramclone.domain.post.repository;
 
+import com.zoooohs.instagramclone.domain.comment.entity.PostCommentEntity;
+import com.zoooohs.instagramclone.domain.comment.repository.PostCommentRepository;
 import com.zoooohs.instagramclone.domain.hashtag.entity.HashTagEntity;
+import com.zoooohs.instagramclone.domain.like.entity.PostLikeEntity;
+import com.zoooohs.instagramclone.domain.like.repository.PostLikeRepository;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,6 +36,12 @@ public class PostRepositoryTest {
     @Autowired
     UserRepository userRepository;
 
+    @Autowired
+    PostCommentRepository postCommentRepository;
+
+    @Autowired
+    PostLikeRepository postLikeRepository;
+
     private PasswordEncoder passwordEncoder;
 
     UserEntity user;
@@ -54,13 +63,6 @@ public class PostRepositoryTest {
 
         post1 = PostEntity.builder().description("post1").user(user).build();
     }
-
-    @AfterEach
-    public void tearDown() {
-        this.postRepository.deleteAll();
-        this.userRepository.deleteAll();
-    }
-
 
     @Test
     public void saveTest() {
@@ -136,6 +138,32 @@ public class PostRepositoryTest {
     @Test
     public void deleteByIdTest() {
         post1 = this.postRepository.save(post1);
+
+        this.postRepository.delete(post1);
+        Optional<PostEntity> actual = this.postRepository.findById(post1.getId());
+
+        assertTrue(actual.isEmpty());
+    }
+
+    @DisplayName("댓글이 달린 게시글 삭제시 댓글, 좋아요 같이 삭제")
+    @Test
+    public void deleteCascadeTest() {
+        post1 = this.postRepository.save(post1);
+
+        PostCommentEntity comment = PostCommentEntity.builder()
+                .post(post1)
+                .user(user)
+                .content("asdf")
+                .build();
+
+        postCommentRepository.save(comment);
+
+        PostLikeEntity like = PostLikeEntity.builder()
+                .post(post1)
+                .user(user)
+                .build();
+
+        postLikeRepository.save(like);
 
         this.postRepository.delete(post1);
         Optional<PostEntity> actual = this.postRepository.findById(post1.getId());

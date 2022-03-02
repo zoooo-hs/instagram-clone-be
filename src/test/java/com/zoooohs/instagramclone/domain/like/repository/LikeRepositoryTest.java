@@ -3,6 +3,7 @@ package com.zoooohs.instagramclone.domain.like.repository;
 import com.zoooohs.instagramclone.domain.comment.entity.PostCommentEntity;
 import com.zoooohs.instagramclone.domain.comment.repository.PostCommentRepository;
 import com.zoooohs.instagramclone.domain.like.entity.CommentLikeEntity;
+import com.zoooohs.instagramclone.domain.like.entity.LikeEntity;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
@@ -13,23 +14,27 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import javax.persistence.EntityManager;
 import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.junit.jupiter.api.Assertions.fail;
 
 @EnableJpaAuditing
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-public class CommentLikeRepositoryTest {
+public class LikeRepositoryTest {
 
     @Autowired
-    CommentLikeRepository likeRepository;
+    LikeRepository likeRepository;
+
+    @Autowired
+    CommentLikeRepository commentLikeRepository;
 
     @Autowired
     UserRepository userRepository;
@@ -39,6 +44,9 @@ public class CommentLikeRepositoryTest {
 
     @Autowired
     PostCommentRepository postCommentRepository;
+
+    @Autowired
+    EntityManager entityManager;
 
     private PasswordEncoder passwordEncoder;
     private PostEntity post;
@@ -64,7 +72,7 @@ public class CommentLikeRepositoryTest {
         comment = postCommentRepository.save(comment);
     }
 
-    @DisplayName("like entity save test")
+    @DisplayName("LikeEntity 저장 후 CommentLikeEntity로 Casting")
     @Test
     public void saveTest() {
         CommentLikeEntity like = CommentLikeEntity.builder().user(user).comment(comment).build();
@@ -74,31 +82,48 @@ public class CommentLikeRepositoryTest {
         assertEquals(like.getComment().getId(), actual.getComment().getId());
     }
 
-    // Entity 상속 Join Patter 쓰면서 어떻게 확인해야 할지 찾아야 함
-    @DisplayName("commentId, userid 쌍이 같은 commentLike row가 insert되어선 안된다")
-    public void commentAndUserUniqueTest() {
+    @DisplayName("LikeEntity 저장 후 LikeRepository에서 id로 읽어와도 PostCommentEntity로 Casting")
+    @Test
+    public void findTest() {
         CommentLikeEntity like = CommentLikeEntity.builder().user(user).comment(comment).build();
         likeRepository.save(like);
-        CommentLikeEntity like2 = CommentLikeEntity.builder().user(user).comment(comment).build();
 
-        try {
-            likeRepository.save(like2);
-            fail();
-        } catch (DataIntegrityViolationException e) {
-            assertTrue(true);
-        } catch (Exception e) {
-            fail();
-        }
+        Long likeId = like.getId();
+
+        entityManager.clear();
+
+        Optional<LikeEntity> maybeCommentLike = likeRepository.findById(likeId);
+
+        CommentLikeEntity actual = maybeCommentLike.filter(likeEntity -> likeEntity instanceof CommentLikeEntity).map(CommentLikeEntity.class::cast).orElse(null);
+
+        assertNotNull(actual);
+        assertTrue(actual.getId() != null);
+        assertEquals(like.getComment().getId(), actual.getComment().getId());
     }
 
-    @DisplayName("commentId, userId 입력 받아 commnet like entity 찾기")
+    @DisplayName("LikeEntity를 삭제하면 CommentLike도 같이 삭제된다")
     @Test
-    public void findByCommentIdAndUserIdTest() {
+    public void deleteLikeEntityTest() {
         CommentLikeEntity like = CommentLikeEntity.builder().user(user).comment(comment).build();
-        like = likeRepository.save(like);
+        likeRepository.save(like);
 
-        CommentLikeEntity actual = likeRepository.findByCommentIdAndUserId(comment.getId(), user.getId());
+        likeRepository.deleteById(like.getId());
 
-        assertEquals(like.getId(), actual.getId());
+
+        List<CommentLikeEntity> actual = commentLikeRepository.findAll();
+
+        assertEquals(0, actual.size());
+    }
+
+    @DisplayName("없는 ID 삭제는 안된다.")
+    @Test
+    public void deleteNullTest() {
+        try {
+            likeRepository.deleteById(3L);
+            fail();
+        } catch (Exception e) {
+            e.printStackTrace();
+            assertTrue(true);
+        }
     }
 }

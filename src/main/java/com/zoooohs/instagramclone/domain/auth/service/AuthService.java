@@ -3,7 +3,7 @@ package com.zoooohs.instagramclone.domain.auth.service;
 import com.zoooohs.instagramclone.domain.auth.dto.AuthDto;
 
 public interface AuthService {
-    AuthDto.Token signUp(AuthDto.SignUp signUp);
+    String signUp(AuthDto.SignUp signUp);
 
     AuthDto.Token signIn(AuthDto.SignIn signIn);
 
@@ -12,4 +12,6 @@ public interface AuthService {
     boolean checkDuplicatedEmail(String email);
 
     boolean checkDuplicatedName(String name);
+
+    Boolean verification(String email, String token);
 }
