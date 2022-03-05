@@ -1,8 +1,8 @@
 spring:
-  profiles:
-    include:
-      - aws
-      - credentials
+  config:
+    import:
+      - application-aws.yaml
+      - application-credentials.yaml
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
     url: jdbc:mariadb://${DB_URL}:${DB_PORT}/${DB_USE}?createDatabaseIfNotExist=true
@@ -14,7 +14,7 @@ spring:
     show-sql: true
     database: mysql
     hibernate:
-      ddl-auto: update
+      ddl-auto: ${DDL_AUTO:validate}
   servlet:
     multipart:
       maxFileSize: 10MB

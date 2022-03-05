@@ -98,6 +98,11 @@ Spring boot 기반 프로젝트로 REST API 서버 구현 및 TDD 실습
     - refresh token 만료 시간
     - millisecond 단위
     - 기본 값 5일
+  - DDL_AUTO
+    - JPA ddl 자동 생성 여부
+    - 기본값 validate
+    - 처음 실행시엔 create로 두어야 table 생성
+    - 이후 validate로 바꾸는 것을 권장
 
 ### Source Code
 
