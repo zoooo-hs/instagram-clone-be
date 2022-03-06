@@ -30,7 +30,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public String signUp(AuthDto.SignUp signUp) {
-        Optional<UserEntity> duplicated = this.userRepository.findByEmailAndName(signUp.getEmail(), signUp.getName());
+        Optional<UserEntity> duplicated = this.userRepository.findByEmailOrName(signUp.getEmail(), signUp.getName());
         if (duplicated.isPresent()) {
             throw new ZooooException(ErrorCode.SIGN_UP_DUPLICATED_EMAIL_OR_NAME);
         }

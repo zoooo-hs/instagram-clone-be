@@ -87,7 +87,7 @@ public class AuthServiceTest {
                 .email(email).name(name).build();
         user.setId(1L);
 
-        given(this.userRepository.findByEmailAndName(eq(email), eq(name))).willReturn(Optional.ofNullable(null));
+        given(this.userRepository.findByEmailOrName(eq(email), eq(name))).willReturn(Optional.ofNullable(null));
         given(this.userRepository.save(any(UserEntity.class))).willReturn(user);
 
         String actual = this.authService.signUp(signUpDto);
@@ -99,7 +99,7 @@ public class AuthServiceTest {
     public void signUpFailureTest() {
         AuthDto.SignUp duplicated = this.modelMapper.map(testUser, AuthDto.SignUp.class);
 
-        given(this.userRepository.findByEmailAndName(eq(duplicated.getEmail()), eq(duplicated.getName()))).willReturn(Optional.of(testUser));
+        given(this.userRepository.findByEmailOrName(eq(duplicated.getEmail()), eq(duplicated.getName()))).willReturn(Optional.of(testUser));
 
         try {
             this.authService.signUp(duplicated);
