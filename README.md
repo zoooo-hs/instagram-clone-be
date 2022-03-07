@@ -7,8 +7,8 @@
 1. [프로젝트의 목적](#프로젝트의-목적)
 2. [프로젝트의 기능](#프로젝트의-기능)
 3. [프로젝트의 기술 스택](#프로젝트의-기술-스택)
+1. [시작하기 앞서](#시작하기-앞서)
 4. [실행 방법](#실행-방법)
-   1. [시작하기-앞서](#시작하기-앞서)
    2. [Source Code](#Source-Code)
    3. [Docker](#Docker)
 5. [변경사항 및 TODO](#변경사항-및-TODO)
@@ -60,52 +60,76 @@ Spring boot 기반 프로젝트로 REST API 서버 구현 및 TDD 실습
 - Test
   - Junit5 + Mockito
 
+## 시작하기 앞서
+
+시작하기 앞서 다음과 같은 절차를 거쳐야한다.
+
+1. S3 Bucket 생성
+2. YAML 수정
+3. Database 환경변수 수정
+
+본 문서에선 *1. S3 Bucket 생성* 에 대해서는 다루지 않는다. S3가 생성되었다는 전제하에 필요한 YAML 수정 및 환경변수 수정에 대해 설명한다.
+
+### YAML 수정
+모든 방법을 사용하기 이전에 application-xxx.yaml을 수정하거나 환경변수를 설정해야한다. 아래와 같이 수정한다.
+- application-aws.yaml
+  ```yaml
+  cloud:
+    aws:
+      s3:
+        bucket: # s3 bucket name
+      region:
+        static: # aws region
+  ```
+- application-credentials.yaml
+  ```yaml
+  cloud:
+    aws:
+      credentials:
+        accessKey: # aws access key
+        secretKey: # aws secret key 
+  
+  instagram-clone:
+    # mail 인증 서비스를 사용하고 싶다면 activation: true, username: gmail id, password: gmail password
+    mail:
+      activation: ${MAIL_ACTIVATION:false}
+      username: ${MAIL_USERNAME}
+      password: ${MAIL_PASSWORD}
+    jwt:
+      access-token:
+        key: # access token sign key. 임의의 값 입력
+        valid-time: 86400000 # default: 1 day
+      refresh-token:
+        key: # refresh token sign key. 임의의 값 입력
+        valid-time: 432000000 # default: 5 days 
+  ```
+### Database 환경변수 수정
+기본 값이 설정되어 있지만, 수정 가능한 환경 변수.
+- DB_ID
+  - default: root
+  - database 사용자 ID
+- DB_PASSWORD
+  - default: mariadb
+  - database 사용자 PASSWORD
+- DB_URL
+  - default: localhost
+  - DB 연결 URL
+- DB_PORT
+  - default: 3306
+  - DB 연결 PORT
+- DB_USE
+  - default: instagram-clone
+  - database 이름
+- DDL_AUTO
+  - JPA ddl 자동 생성 여부
+  - 기본값 validate
+  - 처음 실행시엔 create로 두어야 table 생성
+  - 이후 validate로 바꾸는 것을 권장
+
+
 ## 실행 방법
 
-실행 방법은 source code, Docker 총 2가지를 지원한다.
-
-### 시작하기 앞서
-
-모든 방법을 사용하기 이전에 환경변수 설정을 해야한다. 아래와 같은 환경 변수를 추가한다. Soure Code는 JVM이 실행되는 환경에, 그리고 Docker는 container 실행 옵션으로 환경변수를 설정한다.
-
-- 필수 입력
-  - ACCESS_TOKEN_KEY
-    - access token 발급용 secret key
-    - 임의 값 입력
-  - REFRESH_TOKEN_KEY
-    - refresh token 발급용 secret key
-    - 임의 값 입력
-  - DB_URL
-    - DB 연결 URL
-  - DB_PORT
-    - DB 연결 PORT
-  - DB_USE
-    - database 이름
-  - DB_ID
-    - database 사용자 ID
-  - DB_PASSWORD
-    - database 사용자 PASSWORD
-  - MAIL_USERNAME
-    - 회원 인증 메일 전송을 위한 Gmail 계정 ID
-  - MAIL_PASSWORD
-    - 회원 인증 메일 전송을 위한 Gmail 계정 비밀 번호
-- 선택 입력
-  - ACCESS_TOKEN_VALID_TIME
-    - access token 만료 시간
-    - millisecond 단위
-    - 기본 값 1일
-  - REFRESH_TOKEN_VALID_TIME
-    - refresh token 만료 시간
-    - millisecond 단위
-    - 기본 값 5일
-  - DDL_AUTO
-    - JPA ddl 자동 생성 여부
-    - 기본값 validate
-    - 처음 실행시엔 create로 두어야 table 생성
-    - 이후 validate로 바꾸는 것을 권장
-
 ### Source Code
-
 ```bash
 git clone https://github.com/zoooo-hs/instagram-clone-be
 cd instagram-clone-be

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +24,9 @@ import java.nio.charset.StandardCharsets;
 public class AuthController {
     private final AuthService authService;
     private final MailService mailService;
+
+    @Value("${instagram-clone.mail.activation:true}")
+    private boolean isMailVerification;
 
     @Operation(summary = "회원 가입", description = "email, name, password 를 입력 받아 새로운 회원 생성")
     @ApiResponses(value = {
@@ -39,12 +43,15 @@ public class AuthController {
     @Transactional
     public String signUp(@RequestBody @Valid AuthDto.SignUp signUp, @RequestHeader("origin") String origin) {
         String verificationCode = this.authService.signUp(signUp);
-
-        final String subject = "[ZOOOO-HS INSTAGRAM CLONE] Sign-Up Email Verification";
-        final String email = URLEncoder.encode(signUp.getEmail(), StandardCharsets.UTF_8);
-        final String token = URLEncoder.encode(verificationCode, StandardCharsets.UTF_8);
-        final String text = String.format("verification link : %s/auth/verification?email=%s&token=%s", origin, email, token);
-        mailService.send(signUp.getEmail(), subject, text);
+        if (isMailVerification) {
+            final String subject = "[ZOOOO-HS INSTAGRAM CLONE] Sign-Up Email Verification";
+            final String email = URLEncoder.encode(signUp.getEmail(), StandardCharsets.UTF_8);
+            final String token = URLEncoder.encode(verificationCode, StandardCharsets.UTF_8);
+            final String text = String.format("verification link : %s/auth/verification?email=%s&token=%s", origin, email, token);
+            mailService.send(signUp.getEmail(), subject, text);
+        } else {
+            verify(signUp.getEmail(), verificationCode);
+        }
         return "OK";
     }
 
@@ -124,7 +131,7 @@ public class AuthController {
             ),
     })
     @GetMapping("/auth/verification")
-    public Boolean verification(@RequestParam("email") String email, @RequestParam("token") String token) {
+    public Boolean verify(@RequestParam("email") String email, @RequestParam("token") String token) {
         return this.authService.verification(email, token);
     }
 }

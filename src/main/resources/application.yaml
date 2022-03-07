@@ -1,20 +1,9 @@
 spring:
-  config:
-    import:
-      - application-aws.yaml
-      - application-credentials.yaml
-  datasource:
-    driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://${DB_URL}:${DB_PORT}/${DB_USE}?createDatabaseIfNotExist=true
-    username: ${DB_ID}
-    password: ${DB_PASSWORD}
-  jpa:
-    database-platform: org.hibernate.dialect.MariaDB103Dialect
-    generate-ddl: true
-    show-sql: true
-    database: mysql
-    hibernate:
-      ddl-auto: ${DDL_AUTO:validate}
+  profiles:
+    group:
+      local: common-import,local-import
+      eb: common-import,eb-import
+
   servlet:
     multipart:
       maxFileSize: 10MB
@@ -22,23 +11,38 @@ spring:
   jackson:
     property-naming-strategy: SNAKE_CASE
 
-
 logging:
-    level:
-        org:
-          hibernate: info
+  level:
+    org:
+      hibernate: info
 
 instagram-clone:
-  version: 1.0.1
-  mail:
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-  storage:
-    filesystem: ${STORAGE_FS}
-  jwt:
-    access-token:
-      key: ${ACCESS_TOKEN_KEY}
-      valid-time: ${ACCESS_TOKEN_VALID_TIME:86400000} # default: 1 day
-    refresh-token:
-      key: ${REFRESH_TOKEN_KEY}
-      valid-time: ${REFRESH_TOKEN_VALID_TIME:432000000} # default: 5 days
+  version: 1.0.2
+---
+spring:
+  config:
+    activate:
+      on-profile: common-import
+#   profile global property yaml 추가
+    import:
+      - application-aws.yaml
+      - application-credentials.yaml
+      - application-database.yaml
+---
+spring:
+  config:
+    activate:
+      on-profile: local-import
+#    local profile에 쓸 property yaml 추가
+#    import:
+#      - application-some-property-local.yaml
+---
+spring:
+  config:
+    activate:
+      on-profile: eb-import
+#    prod profile에 쓸 property yaml 추가
+#    import:
+#      - application-some-property-prod.yaml
+server:
+  port: 5000 # aws elastic beanstalk
