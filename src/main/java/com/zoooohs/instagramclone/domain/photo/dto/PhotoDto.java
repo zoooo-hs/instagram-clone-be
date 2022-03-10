@@ -3,6 +3,7 @@ package com.zoooohs.instagramclone.domain.photo.dto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import javax.validation.constraints.NotNull;
@@ -12,6 +13,7 @@ public class PhotoDto {
     @Schema(name = "PhotoDto.Photo")
     @Data
     @NoArgsConstructor
+    @EqualsAndHashCode
     public static class Photo {
         private Long id;
 

@@ -121,6 +121,7 @@ public class AuthServiceTest {
         AuthDto.Token actual = this.authService.signIn(signInDto);
 
         assertEquals(testUser.getEmail(), jwtTokenProvider.getAccessTokenUserId(actual.getAccessToken()));
+        assertEquals(testUser.getEmail(), jwtTokenProvider.getAccessTokenUserId(actual.getAccessToken()));
     }
 
     @DisplayName("인증 받지 않은 계정 DTO -> USER_NOT_VERIFIED throw")
@@ -158,6 +159,7 @@ public class AuthServiceTest {
         }
     }
 
+    @DisplayName("refreshToken 으로 accessToken, refreshToken 갱신")
     @Test
     public void refreshTest() {
         AuthDto.Token token = AuthDto.Token.builder()
@@ -165,6 +167,7 @@ public class AuthServiceTest {
                 .refreshToken(this.jwtTokenProvider.createRefreshToken(testUser.getUsername())).build();
 
         given(this.refreshTokenRepository.findByToken(eq(token.getRefreshToken()))).willReturn(RefreshTokenEntity.builder().build());
+        given(userRepository.findByEmail(eq(testUser.getUsername()))).willReturn(Optional.of(testUser));
 
         AuthDto.Token actual = this.authService.refresh(token);
 
