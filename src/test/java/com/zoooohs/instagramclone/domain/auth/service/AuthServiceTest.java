@@ -87,7 +87,7 @@ public class AuthServiceTest {
                 .email(email).name(name).build();
         user.setId(1L);
 
-        given(this.userRepository.findByEmailAndName(eq(email), eq(name))).willReturn(Optional.ofNullable(null));
+        given(this.userRepository.findByEmailOrName(eq(email), eq(name))).willReturn(Optional.ofNullable(null));
         given(this.userRepository.save(any(UserEntity.class))).willReturn(user);
 
         String actual = this.authService.signUp(signUpDto);
@@ -99,7 +99,7 @@ public class AuthServiceTest {
     public void signUpFailureTest() {
         AuthDto.SignUp duplicated = this.modelMapper.map(testUser, AuthDto.SignUp.class);
 
-        given(this.userRepository.findByEmailAndName(eq(duplicated.getEmail()), eq(duplicated.getName()))).willReturn(Optional.of(testUser));
+        given(this.userRepository.findByEmailOrName(eq(duplicated.getEmail()), eq(duplicated.getName()))).willReturn(Optional.of(testUser));
 
         try {
             this.authService.signUp(duplicated);
@@ -120,6 +120,7 @@ public class AuthServiceTest {
 
         AuthDto.Token actual = this.authService.signIn(signInDto);
 
+        assertEquals(testUser.getEmail(), jwtTokenProvider.getAccessTokenUserId(actual.getAccessToken()));
         assertEquals(testUser.getEmail(), jwtTokenProvider.getAccessTokenUserId(actual.getAccessToken()));
     }
 
@@ -158,6 +159,7 @@ public class AuthServiceTest {
         }
     }
 
+    @DisplayName("refreshToken 으로 accessToken, refreshToken 갱신")
     @Test
     public void refreshTest() {
         AuthDto.Token token = AuthDto.Token.builder()
@@ -165,6 +167,7 @@ public class AuthServiceTest {
                 .refreshToken(this.jwtTokenProvider.createRefreshToken(testUser.getUsername())).build();
 
         given(this.refreshTokenRepository.findByToken(eq(token.getRefreshToken()))).willReturn(RefreshTokenEntity.builder().build());
+        given(userRepository.findByEmail(eq(testUser.getUsername()))).willReturn(Optional.of(testUser));
 
         AuthDto.Token actual = this.authService.refresh(token);
 

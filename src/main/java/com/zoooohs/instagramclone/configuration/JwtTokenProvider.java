@@ -1,5 +1,6 @@
 package com.zoooohs.instagramclone.configuration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -19,14 +20,15 @@ import javax.servlet.http.HttpServletRequest;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.Date;
+import java.util.LinkedHashMap;
 
 @Component
 @RequiredArgsConstructor
 public class JwtTokenProvider {
 
-    @Value("${instagram-clone.jwt.access-token.key}")
-    private String refreshTokenKey = "refresh";
     @Value("${instagram-clone.jwt.refresh-token.key}")
+    private String refreshTokenKey = "refresh";
+    @Value("${instagram-clone.jwt.access-token.key}")
     private String accessTokenKey = "access";
 
     @Value("${instagram-clone.jwt.access-token.valid-time}")
@@ -36,6 +38,7 @@ public class JwtTokenProvider {
 
     private final UserDetailsService userDetailsService;
     private final ModelMapper modelMapper;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @PostConstruct
     protected void init() {
@@ -43,22 +46,41 @@ public class JwtTokenProvider {
         accessTokenKey = Base64.getEncoder().encodeToString(accessTokenKey.getBytes());
     }
 
+    public String createAccessToken(UserDto.Info userDto) {
+        return createToken(userDto, accessTokenValidTime, accessTokenKey);
+    }
+
     public String createAccessToken(String userId) {
-        return createToken(userId, accessTokenValidTime, refreshTokenKey);
+        return createToken(userId, accessTokenValidTime, accessTokenKey);
     }
 
     public String createRefreshToken(String userId) {
-        return createToken(userId, refreshTokenValidTime, accessTokenKey);
+        return createToken(userId, refreshTokenValidTime, refreshTokenKey);
     }
 
-    private String createToken(String userId, long accessTokenValidTime, String accessTokenKey) {
+    private String createToken(UserDto.Info userDto, long tokenValidTime, String signKey) {
+        Claims claims = Jwts.claims().setSubject(userDto.getEmail());
+        claims.put("email", userDto.getEmail());
+        claims.put("name", userDto.getName());
+        claims.put("bio", userDto.getBio());
+        claims.put("photo", userDto.getPhoto());
+        Instant now = Instant.now();
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(Date.from(now))
+                .setExpiration(new Date((now.toEpochMilli() + tokenValidTime)))
+                .signWith(SignatureAlgorithm.HS256, signKey)
+                .compact();
+    }
+
+    private String createToken(String userId, long tokenValidTime, String signKey) {
         Claims claims = Jwts.claims().setSubject(userId);
         Instant now = Instant.now();
         return Jwts.builder()
                 .setClaims(claims)
                 .setIssuedAt(Date.from(now))
-                .setExpiration(new Date((now.toEpochMilli() + accessTokenValidTime)))
-                .signWith(SignatureAlgorithm.HS256, accessTokenKey)
+                .setExpiration(new Date((now.toEpochMilli() + tokenValidTime)))
+                .signWith(SignatureAlgorithm.HS256, signKey)
                 .compact();
     }
 
@@ -68,15 +90,15 @@ public class JwtTokenProvider {
     }
 
     public String getAccessTokenUserId(String token) {
-        return getUserIdFromToken(token, refreshTokenKey);
-    }
-
-    public String getRefreshTokenUserId(String token) {
         return getUserIdFromToken(token, accessTokenKey);
     }
 
-    private String getUserIdFromToken(String token, String accessTokenKey) {
-        return Jwts.parser().setSigningKey(accessTokenKey).parseClaimsJws(token).getBody().getSubject();
+    public String getRefreshTokenUserId(String token) {
+        return getUserIdFromToken(token, refreshTokenKey);
+    }
+
+    private String getUserIdFromToken(String token, String signKey) {
+        return Jwts.parser().setSigningKey(signKey).parseClaimsJws(token).getBody().getSubject();
     }
 
     public String resolveToken(HttpServletRequest request) {
@@ -88,21 +110,28 @@ public class JwtTokenProvider {
     }
 
     public boolean validAccessToken(String jwtToken) {
-        return isValidToken(jwtToken, refreshTokenKey);
-    }
-
-    public boolean validRefreshToken(String jwtToken) {
         return isValidToken(jwtToken, accessTokenKey);
     }
 
-    private boolean isValidToken(String jwtToken, String refreshTokenKey) {
+    public boolean validRefreshToken(String jwtToken) {
+        return isValidToken(jwtToken, refreshTokenKey);
+    }
+
+    private boolean isValidToken(String jwtToken, String signKey) {
         try {
-            Jws<Claims> claims = Jwts.parser().setSigningKey(refreshTokenKey).parseClaimsJws(jwtToken);
+            Jws<Claims> claims = Jwts.parser().setSigningKey(signKey).parseClaimsJws(jwtToken);
             return !claims.getBody().getExpiration().before(Date.from(Instant.now()));
         } catch (Exception e) {
             return false;
         }
     }
 
-
+    public <T> T getValue(String token, String key, Class<T> classType) {
+        if (classType == String.class) {
+            return Jwts.parser().setSigningKey(accessTokenKey).parseClaimsJws(token).getBody().get(key, classType);
+        }
+        return objectMapper.convertValue(
+                Jwts.parser().setSigningKey(accessTokenKey).parseClaimsJws(token).getBody().get(key, LinkedHashMap.class),
+                classType);
+    }
 }

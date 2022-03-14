@@ -13,8 +13,8 @@ public class MailSenderConfiguration {
 
     @Bean
     public JavaMailSender getMailSender(
-            @Value("${instagram-clone.mail.username}") String username,
-            @Value("${instagram-clone.mail.password}") String password
+            @Value("${instagram-clone.mail.username:not-available-email}") String username,
+            @Value("${instagram-clone.mail.password:not-available-email}") String password
     ) {
         // TODO: gmail 말고 다양한 벤더 오픈
         Properties properties = new Properties();

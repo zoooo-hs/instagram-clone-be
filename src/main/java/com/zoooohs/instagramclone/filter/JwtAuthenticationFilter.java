@@ -22,8 +22,12 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         String accessToken = jwtTokenProvider.resolveToken((HttpServletRequest) request);
         if (accessToken != null && jwtTokenProvider.validAccessToken(accessToken)) {
-            Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+            try {
+                Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            } catch (Exception e) {
+                // do nothing -> security 에서 걸릴것
+            }
         }
         chain.doFilter(request, response);
     }

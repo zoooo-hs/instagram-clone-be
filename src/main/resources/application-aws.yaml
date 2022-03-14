@@ -1,9 +1,9 @@
 cloud:
     aws:
       s3:
-        bucket: zoooo-hs-ic-s3-bucket
+        bucket: # fill in aws s3 bucket name
       region:
-        static: ap-northeast-2
+        static: # fill in aws region
       stack:
         auto: false
       credentials:

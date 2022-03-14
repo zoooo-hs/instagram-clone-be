@@ -39,6 +39,7 @@ public class UserDto {
     @NoArgsConstructor
     public static class Info {
         private Long id;
+        private String email;
         private String name;
 
         @Schema(description = "바이오")
@@ -48,8 +49,9 @@ public class UserDto {
         private PhotoDto.Photo photo;
 
         @Builder
-        public Info(Long id, String name, String bio, PhotoDto.Photo photo) {
+        public Info(Long id, String email, String name, String bio, PhotoDto.Photo photo) {
             this.id = id;
+            this.email = email;
             this.name = name;
             this.bio = bio;
             this.photo = photo;

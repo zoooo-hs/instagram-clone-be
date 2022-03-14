@@ -88,14 +88,31 @@ public class UserRepositoryTest {
         assertTrue(nullActual.isEmpty());
     }
 
+    @DisplayName("이름, 이메일 모두 일치하는 계정 찾기")
     @Test
     public void findByEmailAndNameTest() {
-        Optional<UserEntity> actual = this.userRepository.findByEmailAndName(userEntity.getEmail(), userEntity.getName());
-        Optional<UserEntity> nullActual = this.userRepository.findByEmailAndName("no-named@e.e", "no-named");
+        Optional<UserEntity> maybeUser = this.userRepository.findByEmailAndName(userEntity.getEmail(), userEntity.getName());
+        Optional<UserEntity> maybeNull = this.userRepository.findByEmailAndName(userEntity.getEmail(), "no-named");
 
-        assertFalse(actual.isEmpty());
-        assertEquals(userEntity.getEmail(), actual.get().getEmail());
-        assertEquals(userEntity.getName(), actual.get().getName());
+        assertFalse(maybeUser.isEmpty());
+        assertEquals(userEntity.getEmail(), maybeUser.get().getEmail());
+        assertEquals(userEntity.getName(), maybeUser.get().getName());
+        assertTrue(maybeNull.isEmpty());
+    }
+
+    @DisplayName("이름 혹은 이메일로 계정 찾기")
+    @Test
+    public void findByEmailOrNameTest() {
+        Optional<UserEntity> maybeUser1 = this.userRepository.findByEmailOrName(userEntity.getEmail(), "");
+        Optional<UserEntity> maybeUser2 = this.userRepository.findByEmailOrName("", userEntity.getName());
+        Optional<UserEntity> nullActual = this.userRepository.findByEmailOrName("no-named@e.e", "no-named");
+
+        assertFalse(maybeUser1.isEmpty());
+        assertFalse(maybeUser2.isEmpty());
+        assertEquals(userEntity.getEmail(), maybeUser1.get().getEmail());
+        assertEquals(userEntity.getEmail(), maybeUser2.get().getEmail());
+        assertEquals(userEntity.getName(), maybeUser1.get().getName());
+        assertEquals(userEntity.getName(), maybeUser2.get().getName());
         assertTrue(nullActual.isEmpty());
     }
 

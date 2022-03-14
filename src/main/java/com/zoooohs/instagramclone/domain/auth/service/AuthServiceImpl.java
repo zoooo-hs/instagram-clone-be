@@ -5,6 +5,7 @@ import com.zoooohs.instagramclone.domain.auth.dto.AuthDto;
 import com.zoooohs.instagramclone.domain.auth.entity.RefreshTokenEntity;
 import com.zoooohs.instagramclone.domain.auth.repository.RefreshTokenRepository;
 import com.zoooohs.instagramclone.domain.common.type.AccountStatusType;
+import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
 import com.zoooohs.instagramclone.exception.ErrorCode;
@@ -30,7 +31,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public String signUp(AuthDto.SignUp signUp) {
-        Optional<UserEntity> duplicated = this.userRepository.findByEmailAndName(signUp.getEmail(), signUp.getName());
+        Optional<UserEntity> duplicated = this.userRepository.findByEmailOrName(signUp.getEmail(), signUp.getName());
         if (duplicated.isPresent()) {
             throw new ZooooException(ErrorCode.SIGN_UP_DUPLICATED_EMAIL_OR_NAME);
         }
@@ -50,7 +51,7 @@ public class AuthServiceImpl implements AuthService {
         if (user.getStatus().equals(AccountStatusType.WAITING)) {
             throw new ZooooException(ErrorCode.USER_NOT_VERIFIED);
         }
-        return generateNewToken(user.getUsername());
+        return generateNewToken(this.modelMapper.map(user, UserDto.Info.class));
     }
 
     @Override
@@ -65,7 +66,8 @@ public class AuthServiceImpl implements AuthService {
             throw new ZooooException(ErrorCode.TOKEN_EXPIRED);
         }
         String userName = this.jwtTokenProvider.getRefreshTokenUserId(token.getRefreshToken());
-        return generateNewToken(userName);
+        UserEntity user = this.userRepository.findByEmail(userName).orElseThrow(() -> new ZooooException(ErrorCode.TOKEN_EXPIRED));
+        return generateNewToken(this.modelMapper.map(user, UserDto.Info.class));
     }
 
     @Transactional(readOnly = true)
@@ -97,16 +99,16 @@ public class AuthServiceImpl implements AuthService {
 
 
     @Transactional
-    private AuthDto.Token generateNewToken(String userName) {
+    private AuthDto.Token generateNewToken(UserDto.Info userDto) {
         AuthDto.Token token =  AuthDto.Token.builder()
-                .accessToken(this.jwtTokenProvider.createAccessToken(userName))
-                .refreshToken(this.jwtTokenProvider.createRefreshToken(userName))
+                .accessToken(this.jwtTokenProvider.createAccessToken(userDto))
+                .refreshToken(this.jwtTokenProvider.createRefreshToken(userDto.getEmail()))
                 .build();
         // TODO: store refresh token in memory db
-        RefreshTokenEntity refreshTokenEntity = this.refreshTokenRepository.findByUserName(userName);
+        RefreshTokenEntity refreshTokenEntity = this.refreshTokenRepository.findByUserName(userDto.getEmail());
         if (refreshTokenEntity == null) {
             refreshTokenEntity = new RefreshTokenEntity();
-            refreshTokenEntity.setUserName(userName);
+            refreshTokenEntity.setUserName(userDto.getEmail());
         }
         refreshTokenEntity.setToken(token.getRefreshToken());
         this.refreshTokenRepository.save(refreshTokenEntity);
