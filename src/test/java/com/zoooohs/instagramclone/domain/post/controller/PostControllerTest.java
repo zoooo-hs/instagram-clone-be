@@ -117,7 +117,7 @@ public class PostControllerTest {
         List<PostDto.Post> postDtos = new ArrayList<>();
 
         for (int i = 0; i < 10; i++) {
-            PostDto.Post postDto = PostDto.Post.builder().id((long)i).description("a").isLiked(true).likeCount((long)10).build();
+            PostDto.Post postDto = PostDto.Post.builder().id((long)i).description("a").isLiked(true).likeCount((long)10).commentCount((long) 2).build();
             postDtos.add(postDto);
         }
 
@@ -129,6 +129,7 @@ public class PostControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isOk())
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].like_count", Matchers.instanceOf(Integer.class)))
                 .andExpect(MockMvcResultMatchers.jsonPath("$[0].liked", Matchers.instanceOf(Boolean.class)))
+                .andExpect(MockMvcResultMatchers.jsonPath("$[0].comment_count", Matchers.instanceOf(Integer.class)))
         ;
     }
 
@@ -191,7 +192,7 @@ public class PostControllerTest {
     public void updateDescriptionTest() throws Exception {
         String url = String.format("/post/%d/description", 1l);
 
-        given(postService.updateDescription(anyLong(), eq(post), any(UserDto.class))).willReturn(post);
+        given(postService.updateDescription(eq(1L), any(PostDto.Post.class), any(UserDto.class))).willReturn(post);
 
         mockMvc.perform(MockMvcRequestBuilders.patch(url)
                 .contentType(MediaType.APPLICATION_JSON)
