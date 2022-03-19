@@ -55,7 +55,9 @@ public class AuthDto {
     @Schema(name = "AuthDto.Token")
     @Getter
     @Setter
+    @Builder
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class Token {
         @Pattern(regexp = Patterns.JWT)
         @NotNull
@@ -64,11 +66,5 @@ public class AuthDto {
         @Pattern(regexp = Patterns.JWT)
         @NotNull
         private String refreshToken;
-
-        @Builder
-        public Token(String accessToken, String refreshToken) {
-            this.accessToken = accessToken;
-            this.refreshToken = refreshToken;
-        }
     }
 }

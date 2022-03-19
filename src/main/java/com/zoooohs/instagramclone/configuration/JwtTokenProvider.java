@@ -64,6 +64,7 @@ public class JwtTokenProvider {
         claims.put("name", userDto.getName());
         claims.put("bio", userDto.getBio());
         claims.put("photo", userDto.getPhoto());
+        claims.put("id", userDto.getId());
         Instant now = Instant.now();
         return Jwts.builder()
                 .setClaims(claims)
