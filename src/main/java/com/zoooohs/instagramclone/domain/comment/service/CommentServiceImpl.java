@@ -61,7 +61,7 @@ public class CommentServiceImpl implements CommentService {
         PostEntity post = this.postRepository.findById(postId).orElseThrow(() -> new ZooooException(ErrorCode.POST_NOT_FOUND));
         List<PostCommentEntity> comments;
         if (pageModel.getSortKey() == null) {
-            comments = this.postCommentRepository.findByPostId(post.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+            comments = this.postCommentRepository.findByPostIdOrderByIdDesc(post.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
         }
         else {
             switch (pageModel.getSortKey()) {
@@ -72,7 +72,7 @@ public class CommentServiceImpl implements CommentService {
                     comments = postCommentRepository.findPostCommentsOrderByCommentsSize(post.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
                     break;
                 default:
-                    comments = this.postCommentRepository.findByPostId(post.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+                    comments = this.postCommentRepository.findByPostIdOrderByIdDesc(post.getId(), PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
             }
         }
         return comments.stream().map(entity -> {
