@@ -8,6 +8,7 @@ import com.zoooohs.instagramclone.domain.comment.repository.CommentCommentReposi
 import com.zoooohs.instagramclone.domain.comment.repository.CommentRepository;
 import com.zoooohs.instagramclone.domain.comment.repository.PostCommentRepository;
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
+import com.zoooohs.instagramclone.domain.like.entity.LikeEntity;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
@@ -108,8 +109,9 @@ public class CommentServiceImpl implements CommentService {
 
     private CommentDto makeCommentDto(Long userId, CommentEntity commentEntity) {
         CommentDto dto = this.modelMapper.map(commentEntity, CommentDto.class);
-        boolean isLiked = commentEntity.getLikes().stream().filter(like -> like.getUser().getId().equals(userId)).findFirst().isPresent();
-        dto.isLiked(isLiked);
+        Long likedId = commentEntity.getLikes().stream().filter(like -> like.getUser().getId().equals(userId)).findFirst().map(LikeEntity::getId).orElse(null);
+        dto.setLikedId(likedId);
+        dto.isLiked(likedId != null);
         return dto;
     }
 

@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.Accessors;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class PostDto {
@@ -36,7 +37,12 @@ public class PostDto {
         @Schema(name = "liked", description = "내가 좋아요를 눌렀는지 여부")
         private Boolean isLiked;
 
+        @Schema(name = "likedId", description = "내가 누른 좋아요 id")
+        private Long likedId;
+
         @Schema(description = "게시글 댓글 개수")
         private Long commentCount;
+
+        private LocalDateTime createdAt;
     }
 }

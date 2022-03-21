@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.Accessors;
 
 import javax.validation.constraints.NotNull;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -28,8 +29,13 @@ public class CommentDto {
     @Schema(name = "liked", description = "내가 좋아요를 눌렀는지 여부")
     private Boolean isLiked;
 
+    @Schema(name = "likedId", description = "내가 누른 좋아요 id")
+    private Long likedId;
+
     @Schema(description = "대댓글 개수")
     private Long commentCount;
+
+    private LocalDateTime createdAt;
 
     @Builder
     public CommentDto(Long id, String content, UserDto.Feed user, Long likeCount, Boolean isLiked, Long commentCount) {
