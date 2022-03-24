@@ -1,6 +1,5 @@
 package com.zoooohs.instagramclone.domain.post.service;
 
-import com.zoooohs.instagramclone.domain.common.entity.BaseEntity;
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
 import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.common.type.SearchKeyType;
@@ -108,9 +107,12 @@ public class PostServiceImpl implements PostService {
     public List<PostDto.Post> getFeeds(Long userId, SearchModel searchModel) {
         List<PostEntity> postEntities = null;
         if (searchModel.getKeyword() == null) {
-            List<Long> userIds = followRepository.findByUserId(userId).stream().map(entity -> entity.getFollowUser().getId()).collect(Collectors.toList());
-            userIds.add(userId);
-            postEntities = postRepository.findAllByUserId(userIds, PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
+            // 일단 팔로워 붙기 전까진 전체 게시글 보기
+            // TODO: findAllWithPage UnitTest
+            postEntities = postRepository.findAllWithPage(PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
+//            List<Long> userIds = followRepository.findByUserId(userId).stream().map(entity -> entity.getFollowUser().getId()).collect(Collectors.toList());
+//            userIds.add(userId);
+//            postEntities = postRepository.findAllByUserId(userIds, PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
         } else {
             if (searchModel.getSearchKey().equals(SearchKeyType.HASH_TAG)) {
                 postEntities = postRepository.findAllByTag(searchModel.getKeyword(), PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
