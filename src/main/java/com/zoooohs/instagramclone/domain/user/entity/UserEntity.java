@@ -21,7 +21,7 @@ import java.util.Collection;
                 @NamedAttributeNode("photo")
         })
 })
-@EqualsAndHashCode(of = {"name", "email", "id"})
+@EqualsAndHashCode(of = {"name", "email"})
 public class UserEntity extends BaseEntity implements UserDetails {
 
     @Email
