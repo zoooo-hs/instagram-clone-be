@@ -55,6 +55,9 @@ public class PostEntity extends BaseEntity {
     public Long getLikeCount() {
         return (long) likes.size();
     }
+    public Long getCommentCount() {
+        return (long) comments.size();
+    }
 
     public void setHashTags(Set<HashTagEntity> hashTags) {
         this.hashTags.clear();

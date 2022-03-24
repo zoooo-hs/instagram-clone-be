@@ -21,17 +21,15 @@ public class UserDto {
     }
 
     @Schema(name = "UserDto.Feed", description = "게시글 피드 리스트에 유저 정보를 나타내기 위한 DTO")
-    @Data
+    @Getter
+    @Setter
+    @Builder
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class Feed {
         private Long id;
         private String name;
-
-        @Builder
-        public Feed(Long id, String name) {
-            this.id = id;
-            this.name = name;
-        }
+        private PhotoDto.Photo photo;
     }
 
     @Schema(name = "UserDto.Info", description = "유저 세부 정보를 나타내기 위한 DTO")

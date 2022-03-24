@@ -24,10 +24,7 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.anyList;
@@ -94,6 +91,19 @@ public class PhotoServiceTest {
         for (PhotoDto.Photo photo: actual) {
             assertTrue(photo.getId() != null);
         }
+    }
+
+    @DisplayName("compareTo Test")
+    @Test
+    void compareToTest() {
+       photoEntities.sort(new Comparator<PhotoEntity>() {
+           @Override
+           public int compare(PhotoEntity o1, PhotoEntity o2) {
+               return o1.getId().compareTo(o2.getId());
+           }
+       });
+
+       assertTrue(photoEntities.get(0).getId() < photoEntities.get(1).getId());
     }
 
     @DisplayName("userId, Multipartfile 받아 photo 저장, photo entity 저장, user entity에 photo 연결 후 photo 반환")

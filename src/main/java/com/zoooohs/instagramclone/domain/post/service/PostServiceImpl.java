@@ -7,6 +7,8 @@ import com.zoooohs.instagramclone.domain.file.service.StorageService;
 import com.zoooohs.instagramclone.domain.follow.repository.FollowRepository;
 import com.zoooohs.instagramclone.domain.hashtag.entity.HashTagEntity;
 import com.zoooohs.instagramclone.domain.hashtag.service.HashTagService;
+import com.zoooohs.instagramclone.domain.like.entity.LikeEntity;
+import com.zoooohs.instagramclone.domain.photo.dto.PhotoDto;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
@@ -24,10 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -108,9 +107,12 @@ public class PostServiceImpl implements PostService {
     public List<PostDto.Post> getFeeds(Long userId, SearchModel searchModel) {
         List<PostEntity> postEntities = null;
         if (searchModel.getKeyword() == null) {
-            List<Long> userIds = followRepository.findByUserId(userId).stream().map(entity -> entity.getFollowUser().getId()).collect(Collectors.toList());
-            userIds.add(userId);
-            postEntities = postRepository.findAllByUserId(userIds, PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
+            // 일단 팔로워 붙기 전까진 전체 게시글 보기
+            // TODO: findAllWithPage UnitTest
+            postEntities = postRepository.findAllWithPage(PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
+//            List<Long> userIds = followRepository.findByUserId(userId).stream().map(entity -> entity.getFollowUser().getId()).collect(Collectors.toList());
+//            userIds.add(userId);
+//            postEntities = postRepository.findAllByUserId(userIds, PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
         } else {
             if (searchModel.getSearchKey().equals(SearchKeyType.HASH_TAG)) {
                 postEntities = postRepository.findAllByTag(searchModel.getKeyword(), PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
@@ -122,8 +124,15 @@ public class PostServiceImpl implements PostService {
     private List<PostDto.Post> makePostDto(List<PostEntity> postEntities, Long userId) {
         return Optional.ofNullable(postEntities).map(Collection::stream).map(stream -> stream.map(entity -> {
             PostDto.Post post = this.modelMapper.map(entity, PostDto.Post.class);
-            boolean isLiked = entity.getLikes().stream().filter(like -> like.getUser().getId().equals(userId)).findFirst().isPresent();
-            post.isLiked(isLiked);
+            Long likedId = entity.getLikes().stream().filter(like -> like.getUser().getId().equals(userId)).findFirst().map(LikeEntity::getId).orElse(null);
+            post.setLikedId(likedId);
+            post.isLiked(likedId != null);
+            post.getPhotos().sort(new Comparator<PhotoDto.Photo>() {
+                @Override
+                public int compare(PhotoDto.Photo o1, PhotoDto.Photo o2) {
+                    return o1.getId().compareTo(o2.getId());
+                }
+            });
             return post;
         }).collect(Collectors.toList())).orElse(List.of());
     }

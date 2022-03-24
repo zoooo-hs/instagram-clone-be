@@ -138,7 +138,9 @@ public class CommentServiceTest {
                     .content("content " + i)
                     .user(UserEntity.builder().name("user"+1).id((long) i).build())
                     .build();
+            commentEntity.setId((long) i*i);
             CommentLikeEntity commentLike = new CommentLikeEntity();
+            commentLike.setId((long) i);
             commentLike.setComment(commentEntity);
             commentLike.setUser(UserEntity.builder().id(userDto.getId()).build());
             commentEntities.add(commentEntity);
@@ -148,7 +150,7 @@ public class CommentServiceTest {
         }
 
         given(this.postRepository.findById(postId)).willReturn(Optional.ofNullable(post));
-        given(postCommentRepository.findByPostId(eq(postId), any(Pageable.class))).willReturn(commentEntities);
+        given(postCommentRepository.findByPostIdOrderByIdDesc(eq(postId), any(Pageable.class))).willReturn(commentEntities);
 
         List<CommentDto> actual = this.commentService.getPostCommentList(postId, pageModel, userDto.getId());
 
@@ -156,6 +158,7 @@ public class CommentServiceTest {
         assertTrue(actual.size() <= pageModel.getSize());
         assertNotNull(actual.get(0).getLikeCount());
         assertTrue(actual.get(0).isLiked());
+        assertNotNull(actual.get(0).getLikedId());
     }
 
     @DisplayName("commentId 입력 받아 comment comment list 반환하는 service 테스트")
@@ -173,7 +176,9 @@ public class CommentServiceTest {
                     .content("content " + i)
                     .user(UserEntity.builder().name("user"+1).id((long) i).build())
                     .build();
+            commentEntity.setId((long)i*i);
             CommentLikeEntity commentLike = new CommentLikeEntity();
+            commentLike.setId((long) i);
             commentLike.setComment(commentEntity);
             commentLike.setUser(UserEntity.builder().id(userDto.getId()).build());
             commentEntities.add(commentEntity);
@@ -191,6 +196,7 @@ public class CommentServiceTest {
         assertTrue(actual.size() <= pageModel.getSize());
         assertNotNull(actual.get(0).getLikeCount());
         assertTrue(actual.get(0).isLiked());
+        assertNotNull(actual.get(0).getLikedId());
     }
 
     @DisplayName("없는 postId의 경우 POST_NOT_FOUND Exception throw 하는 service테스트")

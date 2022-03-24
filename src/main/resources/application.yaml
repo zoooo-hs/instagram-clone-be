@@ -36,6 +36,9 @@ spring:
 #    local profile에 쓸 property yaml 추가
 #    import:
 #      - application-some-property-local.yaml
+instagram-clone:
+  cors:
+    allow-url: "*"
 ---
 spring:
   config:
@@ -44,5 +47,11 @@ spring:
 #    prod profile에 쓸 property yaml 추가
 #    import:
 #      - application-some-property-prod.yaml
+instagram-clone:
+  cors:
+    # 환경에 맞는 static web host를 입력
+    allow-url: http://zoooo-hs-ic-static.s3-website.ap-northeast-2.amazonaws.com
 server:
   port: 5000 # aws elastic beanstalk
+  servlet:
+    contextPath: /api

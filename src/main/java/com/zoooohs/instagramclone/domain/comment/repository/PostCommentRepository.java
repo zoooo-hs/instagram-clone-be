@@ -18,10 +18,13 @@ public interface PostCommentRepository extends JpaRepository<PostCommentEntity, 
     PostCommentEntity findByIdAndUserId(Long commentId, Long userId);
 
     @EntityGraph("comment-user")
-    @Query("SELECT c FROM post_comment c WHERE c.post.id = :id ORDER BY c.likes.size DESC")
+    @Query("SELECT c FROM post_comment c WHERE c.post.id = :id ORDER BY c.likes.size DESC, c.id")
     List<PostCommentEntity> findPostCommentsOrderByLikesSize(@Param("id") Long id, Pageable pageable);
 
     @EntityGraph("comment-user")
-    @Query("SELECT c FROM post_comment c WHERE c.post.id = :id ORDER BY c.comments.size DESC")
+    @Query("SELECT c FROM post_comment c WHERE c.post.id = :id ORDER BY c.comments.size DESC, c.id")
     List<PostCommentEntity> findPostCommentsOrderByCommentsSize(@Param("id") Long id, Pageable pageable);
+
+    @EntityGraph("comment-user")
+    List<PostCommentEntity> findByPostIdOrderByIdDesc(Long postId, Pageable of);
 }
