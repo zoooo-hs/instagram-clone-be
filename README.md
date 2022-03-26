@@ -133,7 +133,7 @@ Spring boot 기반 프로젝트로 REST API 서버 구현 및 TDD 실습
 ```bash
 git clone https://github.com/zoooo-hs/instagram-clone-be
 cd instagram-clone-be
-./gradlew bootRun
+./gradlew bootRun -Dspring.profiles.active=local
 ```
 
 ### Docker
