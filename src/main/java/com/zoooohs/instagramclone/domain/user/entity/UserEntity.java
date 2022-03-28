@@ -16,6 +16,7 @@ import java.util.Collection;
 @Setter
 @NoArgsConstructor
 @Entity(name = "user")
+@Table(name = "users")
 @NamedEntityGraphs({
         @NamedEntityGraph(name = "user-info", attributeNodes = {
                 @NamedAttributeNode("photo")

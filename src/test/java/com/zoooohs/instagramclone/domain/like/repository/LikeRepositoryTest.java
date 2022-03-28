@@ -90,8 +90,6 @@ public class LikeRepositoryTest {
 
         Long likeId = like.getId();
 
-        entityManager.clear();
-
         Optional<LikeEntity> maybeCommentLike = likeRepository.findById(likeId);
 
         CommentLikeEntity actual = maybeCommentLike.filter(likeEntity -> likeEntity instanceof CommentLikeEntity).map(CommentLikeEntity.class::cast).orElse(null);

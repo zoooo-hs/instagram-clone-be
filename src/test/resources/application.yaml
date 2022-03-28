@@ -4,17 +4,19 @@ spring:
       - aws
       - credentials
   datasource:
-    driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3306/instagram-clone-test-db?createDatabaseIfNotExist=true
-    username: root
-    password: mariadb
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:test;MODE=MySQL;
+    username: sa
+    password: password
   jpa:
-    database-platform: org.hibernate.dialect.MariaDB103Dialect
+    database-platform: org.hibernate.dialect.H2Dialect
     generate-ddl: true
     show-sql: true
-    database: mysql
+#    database: h2
     hibernate:
-      ddl-auto: update
+      ddl-auto: create-drop
+      dialect: org.hibernate.dialect.MariaDBDialect
+
   jackson:
     property-naming-strategy: SNAKE_CASE
 
@@ -27,6 +29,7 @@ logging:
 instagram-clone:
   version: 1.0.1
   mail:
+    activation: ${MAIL_ACTIVATION:true}
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
   storage:

@@ -15,7 +15,7 @@ public class MailSenderConfiguration {
     public JavaMailSender getMailSender(
             @Value("${instagram-clone.mail.username}") String username,
             @Value("${instagram-clone.mail.password}") String password,
-            @Value("${instagram-clone.mail.activation}") boolean activation
+            @Value("#{new Boolean('${instagram-clone.mail.activation}')}") boolean activation
     ) {
         if (!activation) {
             return new JavaMailSenderImpl();
