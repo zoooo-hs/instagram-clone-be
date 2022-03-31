@@ -11,6 +11,7 @@ import com.zoooohs.instagramclone.domain.like.entity.LikeEntity;
 import com.zoooohs.instagramclone.domain.photo.dto.PhotoDto;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
+import com.zoooohs.instagramclone.domain.post.dto.PostDto.Post;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
@@ -141,4 +142,10 @@ public class PostServiceImpl implements PostService {
         return hashTagService.manage(content, postId).stream()
                 .map(dto -> modelMapper.map(dto, HashTagEntity.class)).collect(Collectors.toSet());
     }
+
+	@Override
+	public List<Post> findByUserName(String userName, PageModel pageModel, Long userId) {
+        List<PostEntity> postEntities = postRepository.findByUserName(userName, PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
+		return makePostDto(postEntities, userId);
+	}
 }

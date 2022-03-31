@@ -187,6 +187,33 @@ public class PostControllerTest {
         ;
     }
 
+    @DisplayName("사용자 이름 기반 게시글 찾기")
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
+    void findByUserNameTest() throws Exception {
+        String url = "/name/test/user/post";
+
+        int resultSize = 10;
+        List<PostDto.Post> postDtos = new ArrayList<>();
+
+        for (int i = 0; i < resultSize; i++) {
+            PostDto.Post postDto = PostDto.Post.builder().id((long)i).description("a").isLiked(true).likeCount((long)10).user(UserDto.Feed.builder().id(1L).name("test").build()).build();
+            postDtos.add(postDto);
+        }
+
+        given(postService.findByUserName(eq("test"), any(PageModel.class), eq(1L))).willReturn(postDtos);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(url)
+                .queryParam("index", "0")
+                .queryParam("size", "20"))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andExpect(MockMvcResultMatchers.jsonPath("$[0].user.name", Matchers.is("test")))
+            ;
+    }
+
+
+
+
     @Test
     @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
     public void updateDescriptionTest() throws Exception {

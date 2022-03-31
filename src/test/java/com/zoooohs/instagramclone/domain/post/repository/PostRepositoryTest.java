@@ -197,6 +197,17 @@ public class PostRepositoryTest {
         assertEquals(post2.getId(), actual.get(0).getId());
     }
 
+    @DisplayName("user named으로 post entity 찾기")
+    @Test
+    void findByUserNameTest() {
+        postRepository.save(post1);
+
+        List<PostEntity> actual = postRepository.findByUserName(user.getName(), PageRequest.of(0, 20));
+
+        assertEquals(1, actual.size());
+        assertEquals(user.getName(), actual.get(0).getUser().getName());
+    }
+
     @DisplayName("tag로 모든 게시글 찾는 레포지토리 테스트")
     @Test
     public void findAllByTag() {

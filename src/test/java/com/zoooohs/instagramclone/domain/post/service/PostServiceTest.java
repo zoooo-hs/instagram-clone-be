@@ -10,6 +10,7 @@ import com.zoooohs.instagramclone.domain.hashtag.service.HashTagService;
 import com.zoooohs.instagramclone.domain.like.entity.PostLikeEntity;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
+import com.zoooohs.instagramclone.domain.post.dto.PostDto.Post;
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
 import com.zoooohs.instagramclone.domain.post.repository.PostRepository;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
@@ -26,6 +27,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
@@ -61,7 +63,7 @@ public class PostServiceTest {
     public void setUp() {
         MockitoAnnotations.openMocks(this);
         postService = new PostServiceImpl(postRepository, followRepository, modelMapper, storageService, hashTagService);
-        user = UserDto.builder().id(1L).build();
+        user = UserDto.builder().id(1L).name("test").build();
         UserDto.Feed userFeed = this.modelMapper.map(user, UserDto.Feed.class);
         post = PostDto.Post.builder().description("some desc").user(userFeed).photos(new ArrayList<>()).build();
     }
@@ -220,6 +222,34 @@ public class PostServiceTest {
             assertTrue(user.getId() == p.getUser().getId());
             assertNotNull(p.getLikeCount());
             assertNotNull(p.isLiked());
+        }
+    }
+
+    @DisplayName("user name으로 게시글 찾기")
+    @Test
+    void findByUserNameTest() {
+        UserEntity userEntity = this.modelMapper.map(user, UserEntity.class);
+        List<PostEntity> posts = new ArrayList<>();
+        for (int i = 0; i < 30; i++) {
+            PostEntity post = new PostEntity();
+            post.setDescription("desc"+i);
+            post.setUser(userEntity);
+            PostLikeEntity like = PostLikeEntity.builder().user(userEntity).post(post).build();
+            Set<PostLikeEntity> likes = new HashSet();
+            likes.add(like);
+            post.setLikes(likes);
+
+            posts.add(post);
+        }
+
+        given(postRepository.findByUserName(eq(user.getName()), any(Pageable.class))).willReturn(posts.subList(0, 20));
+
+        List<Post> actual = this.postService.findByUserName(user.getName(), PageModel.builder().index(0).size(20).build(), 1L);
+
+        assertTrue(20 >= actual.size());
+        assertTrue(0 < actual.size());
+        for (PostDto.Post p: actual) {
+            assertTrue(user.getName().equals(p.getUser().getName()));
         }
     }
 

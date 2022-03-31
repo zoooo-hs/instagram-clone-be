@@ -1,6 +1,7 @@
 package com.zoooohs.instagramclone.domain.post.repository;
 
 import com.zoooohs.instagramclone.domain.post.entity.PostEntity;
+
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -43,4 +44,8 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     @EntityGraph("post-feed")
     @Query("SELECT ht.post FROM hash_tag ht JOIN PostEntity p ON ht.post.id = p.id WHERE ht.tag = :tag ORDER BY p.id DESC")
     List<PostEntity> findAllByTag(@Param("tag") String tag, Pageable pageable);
+
+    @EntityGraph("post-feed")
+    @Query("SELECT p FROM PostEntity p WHERE p.user.name = :userName ORDER BY p.id DESC")
+    List<PostEntity> findByUserName(@Param("userName") String userName, Pageable of);
 }

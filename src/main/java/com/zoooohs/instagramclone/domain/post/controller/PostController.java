@@ -70,6 +70,19 @@ public class PostController {
         return this.postService.findByUserId(userId, pageModel, userDto.getId());
     }
 
+    
+    @Operation(summary = "특정 사용자의 이름으로 게시글 불러오기", description = "특정 사용자의 이름으로 게시글 리스트를 불러온다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200", description = "불러오기 성공. 게시글 리스트 반환",
+                    content = { @Content(mediaType = "application/json", array = @ArraySchema(schema = @Schema(implementation = PostDto.Post.class))) }
+            ),
+    })
+    @GetMapping("/name/{userName}/user/post")
+    public List<PostDto.Post> findAllByUserName(@PathVariable String userName, @ModelAttribute PageModel pageModel, @AuthenticationPrincipal UserDto userDto) {
+        return this.postService.findByUserName(userName, pageModel, userDto.getId());
+    }
+
     @Operation(summary = "게시글 설명 수정", description = "게시글의 설명을 수정한다.")
     @ApiResponses(value = {
             @ApiResponse(

@@ -30,6 +30,13 @@ public class UserDto {
         private Long id;
         private String name;
         private PhotoDto.Photo photo;
+
+        public PhotoDto.Photo getPhoto() {
+            if (photo == null) {
+                return PhotoDto.Photo.builder().path("/default-profile.png").build();
+            }
+            return photo;
+        }
     }
 
     @Schema(name = "UserDto.Info", description = "유저 세부 정보를 나타내기 위한 DTO")
@@ -53,6 +60,13 @@ public class UserDto {
             this.name = name;
             this.bio = bio;
             this.photo = photo;
+        }
+
+        public PhotoDto.Photo getPhoto() {
+            if (photo == null) {
+                return PhotoDto.Photo.builder().path("/default-profile.png").build();
+            }
+            return photo;
         }
     }
 
