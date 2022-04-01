@@ -201,4 +201,25 @@ public class UserServiceTest {
             fail();
         }
     }
+
+    @DisplayName("user 이름으로 사용자 조회해서 info 반환")
+    @Test
+    void findByNameTest() {
+        given(userRepository.findByName(eq("test")))
+            .willReturn(Optional.of(UserEntity.builder().id(1L).name("test").build()));
+
+        UserDto.Info actual = userService.findByName("test");
+
+        assertEquals("test", actual.getName());
+        
+        try {
+            userService.findByName("test-2-not-found-name");
+            fail();
+        } catch (ZooooException e) {
+            assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());
+        } catch (Exception e) {
+            fail();
+        }
+    }
+    
 }

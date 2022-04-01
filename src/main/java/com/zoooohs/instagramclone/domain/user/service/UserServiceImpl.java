@@ -3,6 +3,7 @@ package com.zoooohs.instagramclone.domain.user.service;
 import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.common.type.SearchKeyType;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
+import com.zoooohs.instagramclone.domain.user.dto.UserDto.Info;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
 import com.zoooohs.instagramclone.exception.ErrorCode;
@@ -80,4 +81,11 @@ public class UserServiceImpl implements UserService {
         // map to user info
         return modelMapper.map(user, UserDto.Info.class);
     }
+
+	@Override
+	public Info findByName(String name) {
+        return userRepository.findByName(name)
+            .map(entity -> modelMapper.map(entity, UserDto.Info.class))
+            .orElseThrow(() -> new ZooooException(ErrorCode.USER_NOT_FOUND));
+	}
 }

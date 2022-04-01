@@ -178,4 +178,19 @@ public class UserControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isNotFound());
     }
 
+    @DisplayName("user 이름으로 정보 받아오기")
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
+    void findByNameTest() throws Exception {
+        String url = "/name/test/user";
+
+        UserDto.Info user = UserDto.Info.builder().id(1L).name("test").build();
+
+        given(userService.findByName(eq("test"))).willReturn(user);
+
+        mockMvc.perform(MockMvcRequestBuilders.get(url))
+            .andExpect(MockMvcResultMatchers.status().isOk())
+            .andExpect(MockMvcResultMatchers.jsonPath("$.name", Matchers.is("test")))
+            ;
+    }
 }
