@@ -6,6 +6,7 @@ import com.zoooohs.instagramclone.exception.ZooooValidationExceptionResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -38,7 +39,7 @@ public class ExceptionHandlerConfiguration extends ResponseEntityExceptionHandle
         List<ZooooValidationExceptionResponse.Validation> validations = e.getFieldErrors().stream()
                 .map(error -> ZooooValidationExceptionResponse.Validation.builder()
                         .field(error.getField())
-                        .rejectedValue(error.getRejectedValue().toString())
+                        .rejectedValue(ObjectUtils.nullSafeToString(error.getRejectedValue()))
                         .defaultMessage(error.getDefaultMessage())
                         .build()).collect(Collectors.toList());
 
