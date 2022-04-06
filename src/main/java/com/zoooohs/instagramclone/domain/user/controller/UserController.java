@@ -38,6 +38,22 @@ public class UserController {
         return this.userService.getInfo(userId);
     }
 
+    @Operation(summary = "이름 기반 사용자 정보 조회", description = "특정 사용자의 상세 정보를 이름으로 조회한다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200", description = "조회 성공. 사용자 상세 정보 결과 반환",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = UserDto.Info.class)) }
+            ),
+            @ApiResponse(
+                    responseCode = "404", description = "존재하지 않는 사용자",
+                    content = { @Content(mediaType = "application/json", schema = @Schema(implementation = ZooooExceptionResponse.class)) }
+            ),
+    })
+    @GetMapping("/name/{name}/user")
+    public UserDto.Info findByName(@PathVariable String name) {
+        return this.userService.findByName(name);
+    }
+
     @Operation(summary = "사용자 리스트 조회", description = "사용자 리스트를 조회하거나, 이름으로 사용자 리스트 검색")
     @ApiResponses(value = {
             @ApiResponse(

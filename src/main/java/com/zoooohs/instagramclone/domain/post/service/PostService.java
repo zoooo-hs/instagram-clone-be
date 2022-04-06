@@ -3,6 +3,7 @@ package com.zoooohs.instagramclone.domain.post.service;
 import com.zoooohs.instagramclone.domain.common.model.PageModel;
 import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.post.dto.PostDto;
+import com.zoooohs.instagramclone.domain.post.dto.PostDto.Post;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,4 +22,6 @@ public interface PostService {
     Long deleteById(Long postId, Long userId);
 
     List<PostDto.Post> getFeeds(Long userId, SearchModel searchModel);
+
+    public List<Post> findByUserName(String userName, PageModel pageModel, Long userId);
 }
