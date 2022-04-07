@@ -41,6 +41,8 @@ public class UserDto {
 
     @Schema(name = "UserDto.Info", description = "유저 세부 정보를 나타내기 위한 DTO")
     @Data
+    @Builder
+    @AllArgsConstructor
     @NoArgsConstructor
     public static class Info {
         private Long id;
@@ -53,14 +55,9 @@ public class UserDto {
         @Schema(description = "프로필 사진")
         private PhotoDto.Photo photo;
 
-        @Builder
-        public Info(Long id, String email, String name, String bio, PhotoDto.Photo photo) {
-            this.id = id;
-            this.email = email;
-            this.name = name;
-            this.bio = bio;
-            this.photo = photo;
-        }
+        private boolean following;
+        private Long followerCount;
+        private Long followingCount;
 
         public PhotoDto.Photo getPhoto() {
             if (photo == null) {
