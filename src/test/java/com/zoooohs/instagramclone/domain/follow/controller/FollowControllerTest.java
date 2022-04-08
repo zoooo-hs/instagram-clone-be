@@ -1,5 +1,17 @@
 package com.zoooohs.instagramclone.domain.follow.controller;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import java.util.List;
+
 import com.zoooohs.instagramclone.configuration.SecurityConfiguration;
 import com.zoooohs.instagramclone.configure.WithAuthUser;
 import com.zoooohs.instagramclone.domain.follow.dto.FollowDto;
@@ -7,12 +19,12 @@ import com.zoooohs.instagramclone.domain.follow.service.FollowService;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.exception.ErrorCode;
 import com.zoooohs.instagramclone.exception.ZooooException;
+
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -21,12 +33,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
-
-import static org.mockito.BDDMockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @AutoConfigureMockMvc(addFilters = false)
 @WebMvcTest(
@@ -112,5 +118,37 @@ public class FollowControllerTest {
         mockMvc.perform(delete(url409Self))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code", Matchers.is(ErrorCode.FOLLOWING_SELF.name())));
+    }
+
+    @DisplayName("GET /user/{userId}/follow/follow-user 로 userId가 팔로우하는 모든 유저 리스트 반환")
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
+    void findByUserIdTest() throws Exception {
+        String url = "/user/1/follow/follow-user";
+
+        UserDto.Info following = UserDto.Info.builder().id(2L).build();
+
+        given(followService.findByUserId(eq(1L), any(UserDto.class))).willReturn(List.of(following));
+
+        mockMvc.perform(get(url))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id", Matchers.is(2)))
+                .andExpect(jsonPath("$", Matchers.hasSize(1)));
+    }
+
+    @DisplayName("GET /follow-user/{userId}/follow/user 로 userId를 팔로우하는 모든 유저 리스트 반환")
+    @Test
+    @WithAuthUser(email = "user1@test.test", id = 1L, name = "test")
+    void findByFollowUserIdTest() throws Exception {
+        String url = "/follow-user/1/follow/user";
+
+        UserDto.Info following = UserDto.Info.builder().id(2L).build();
+
+        given(followService.findByFollowUserId(eq(1L), any(UserDto.class))).willReturn(List.of(following));
+
+        mockMvc.perform(get(url))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id", Matchers.is(2)))
+                .andExpect(jsonPath("$", Matchers.hasSize(1)));
     }
 }

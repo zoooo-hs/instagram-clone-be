@@ -3,6 +3,7 @@ package com.zoooohs.instagramclone.domain.follow.service;
 import com.zoooohs.instagramclone.domain.follow.dto.FollowDto;
 import com.zoooohs.instagramclone.domain.follow.entity.FollowEntity;
 import com.zoooohs.instagramclone.domain.follow.repository.FollowRepository;
+import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
 import com.zoooohs.instagramclone.exception.ErrorCode;
@@ -16,6 +17,8 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -147,5 +150,49 @@ public class FollowServiceTest {
         } catch (Exception e) {
             fail();
         }
+    }
+
+    @DisplayName("user id 로 팔로잉하는 유저 리스트 반환")
+    @Test
+    void findByUserIdTest() {
+        UserDto userDto = UserDto.builder().id(1L).build();
+
+        List<FollowEntity> follows = new ArrayList<>();
+        for (int i = 2; i <= 3; i++) {
+            follows.add(FollowEntity.builder()
+                    .user(userEntity)
+                    .followUser(UserEntity.builder().id((long) i).build())
+                    .build());
+        }
+
+        given(followRepository.findByUserId(eq(1L))).willReturn(follows);
+
+        List<UserDto.Info> actual = followService.findByUserId(userId, userDto);
+
+        assertEquals(2, actual.size());
+        assertEquals(2L, actual.get(0).getId());
+        assertEquals(3L, actual.get(1).getId());
+    }
+
+    @DisplayName("user id를 followUser로 갖는 follow들의 user 리스트 반환")
+    @Test
+    void findByFollowUserIdTest() {
+        UserDto userDto = UserDto.builder().id(1L).build();
+
+        List<FollowEntity> follows = new ArrayList<>();
+        for (int i = 2; i <= 3; i++) {
+            follows.add(FollowEntity.builder()
+                    .user(UserEntity.builder().id((long) i).build())
+                    .followUser(userEntity)
+                    .build());
+        }
+
+        given(followRepository.findByFollowUserId(eq(1L))).willReturn(follows);
+
+        List<UserDto.Info> actual = followService.findByFollowUserId(userId, userDto);
+
+        assertEquals(2, actual.size());
+        assertEquals(2L, actual.get(0).getId());
+        assertEquals(3L, actual.get(1).getId());
     }
 }
