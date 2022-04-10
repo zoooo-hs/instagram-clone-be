@@ -2,8 +2,6 @@ package com.zoooohs.instagramclone.domain.auth.service;
 
 import com.zoooohs.instagramclone.configuration.JwtTokenProvider;
 import com.zoooohs.instagramclone.domain.auth.dto.AuthDto;
-import com.zoooohs.instagramclone.domain.auth.entity.RefreshTokenEntity;
-import com.zoooohs.instagramclone.domain.auth.repository.RefreshTokenRepository;
 import com.zoooohs.instagramclone.domain.common.type.AccountStatusType;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
@@ -44,8 +42,6 @@ public class AuthServiceTest {
     @Mock
     UserRepository userRepository;
     @Mock
-    RefreshTokenRepository refreshTokenRepository;
-    @Mock
     UserDetailsService userDetailsService;
 
     PasswordEncoder passwordEncoder;
@@ -59,12 +55,13 @@ public class AuthServiceTest {
     public void setUp() {
         passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
         jwtTokenProvider = new JwtTokenProvider(userDetailsService, modelMapper);
-        authService = new AuthServiceImpl(userRepository, refreshTokenRepository, modelMapper, passwordEncoder, jwtTokenProvider);
+        authService = new AuthServiceImpl(userRepository, modelMapper, passwordEncoder, jwtTokenProvider);
 
         String email = "test-user@email.com";
         String password = passwordEncoder.encode(testUserPasswdDecode);
         String name = "test-user";
         testUser = UserEntity.builder()
+            .id(1L)
                 .email(email)
                 .name(name)
                 .password(password)
@@ -87,7 +84,7 @@ public class AuthServiceTest {
                 .email(email).name(name).build();
         user.setId(1L);
 
-        given(this.userRepository.findByEmailOrName(eq(email), eq(name))).willReturn(Optional.ofNullable(null));
+        given(this.userRepository.findByEmailOrName(eq(email), eq(name))).willReturn(Optional.empty());
         given(this.userRepository.save(any(UserEntity.class))).willReturn(user);
 
         String actual = this.authService.signUp(signUpDto);
@@ -120,8 +117,8 @@ public class AuthServiceTest {
 
         AuthDto.Token actual = this.authService.signIn(signInDto);
 
-        assertEquals(testUser.getEmail(), jwtTokenProvider.getAccessTokenUserId(actual.getAccessToken()));
-        assertEquals(testUser.getEmail(), jwtTokenProvider.getAccessTokenUserId(actual.getAccessToken()));
+        assertEquals(testUser.getId(), Long.parseLong(jwtTokenProvider.getAccessTokenUserId(actual.getAccessToken())));
+        assertEquals(testUser.getId(), Long.parseLong(jwtTokenProvider.getAccessTokenUserId(actual.getAccessToken())));
     }
 
     @DisplayName("인증 받지 않은 계정 DTO -> USER_NOT_VERIFIED throw")
@@ -162,12 +159,7 @@ public class AuthServiceTest {
     @DisplayName("refreshToken 으로 accessToken, refreshToken 갱신")
     @Test
     public void refreshTest() {
-        AuthDto.Token token = AuthDto.Token.builder()
-                .accessToken(this.jwtTokenProvider.createAccessToken(testUser.getUsername()))
-                .refreshToken(this.jwtTokenProvider.createRefreshToken(testUser.getUsername())).build();
-
-        given(this.refreshTokenRepository.findByToken(eq(token.getRefreshToken()))).willReturn(RefreshTokenEntity.builder().build());
-        given(userRepository.findByEmail(eq(testUser.getUsername()))).willReturn(Optional.of(testUser));
+        AuthDto.Token token = jwtTokenProvider.createToken(testUser.getId());
 
         AuthDto.Token actual = this.authService.refresh(token);
 
@@ -177,35 +169,15 @@ public class AuthServiceTest {
 
     @Test
     public void refreshTokenDateExpiredFailureTest() {
-        AuthDto.Token token = AuthDto.Token.builder()
-                .refreshToken(this.jwtTokenProvider.createRefreshToken(testUser.getUsername())).build();
+        AuthDto.Token token = jwtTokenProvider.createToken(testUser.getId());
 
-        Instant now = Instant.ofEpochMilli(Instant.now().toEpochMilli() + 2*24*60*60*1000);
+        Instant now = Instant.ofEpochMilli(Instant.now().toEpochMilli() + 120L *24*60*60*1000);
 
         MockedStatic<Instant> instantMockedStatic = mockStatic(Instant.class);
-        instantMockedStatic.when(() -> Instant.now()).thenReturn(now);
 
-        try {
-            AuthDto.Token actual = this.authService.refresh(token);
-            fail();
-        } catch (ZooooException e) {
-            assertEquals(ErrorCode.TOKEN_EXPIRED, e.getErrorCode());
-        } catch (Exception e) {
-            fail();
-        } finally {
-            instantMockedStatic.close();
-        }
-    }
-
-    @Test
-    public void refreshTokenNotFoundFailureTest() {
-        AuthDto.Token token = AuthDto.Token.builder()
-                .refreshToken(this.jwtTokenProvider.createRefreshToken(testUser.getUsername())).build();
-
-        given(this.refreshTokenRepository.findByToken(eq(token.getRefreshToken()))).willReturn(null);
-
-        try {
-            AuthDto.Token actual = this.authService.refresh(token);
+        try (instantMockedStatic) {
+            instantMockedStatic.when(Instant::now).thenReturn(now);
+            this.authService.refresh(token);
             fail();
         } catch (ZooooException e) {
             assertEquals(ErrorCode.TOKEN_EXPIRED, e.getErrorCode());
@@ -217,7 +189,7 @@ public class AuthServiceTest {
     @Test
     public void checkDuplicatedEmail() {
         given(this.userRepository.findByEmail(eq(testUser.getEmail()))).willReturn(Optional.of(testUser));
-        given(this.userRepository.findByEmail(eq("not-duplicatee@d.d"))).willReturn(Optional.ofNullable(null));
+        given(this.userRepository.findByEmail(eq("not-duplicatee@d.d"))).willReturn(Optional.empty());
 
         boolean duplicatedActual = this.authService.checkDuplicatedEmail(testUser.getEmail());
         boolean notDuplicatedActual = this.authService.checkDuplicatedEmail("not-duplicatee@d.d");
@@ -228,7 +200,7 @@ public class AuthServiceTest {
     @Test
     public void checkDuplicatedName() {
         given(this.userRepository.findByName(eq(testUser.getName()))).willReturn(Optional.of(testUser));
-        given(this.userRepository.findByName(eq("not-duplicated"))).willReturn(Optional.ofNullable(null));
+        given(this.userRepository.findByName(eq("not-duplicated"))).willReturn(Optional.empty());
 
         boolean duplicatedActual = this.authService.checkDuplicatedName(testUser.getName());
         boolean notDuplicatedActual = this.authService.checkDuplicatedName("not-duplicated");
@@ -245,7 +217,7 @@ public class AuthServiceTest {
         given(userRepository.findByEmail(eq(email))).willAnswer(new Answer<Optional<UserEntity>>() {
             private int count = 0;
             @Override
-            public Optional<UserEntity> answer(InvocationOnMock invocation) throws Throwable {
+            public Optional<UserEntity> answer(InvocationOnMock invocation) {
                 UserEntity user = UserEntity.builder().email(email).name("test").build();
                 if (count == 0) {
                     user.setStatus(AccountStatusType.WAITING);

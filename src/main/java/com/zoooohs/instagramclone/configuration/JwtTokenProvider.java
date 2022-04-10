@@ -1,6 +1,7 @@
 package com.zoooohs.instagramclone.configuration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.zoooohs.instagramclone.domain.auth.dto.AuthDto.Token;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -46,6 +47,12 @@ public class JwtTokenProvider {
         accessTokenKey = Base64.getEncoder().encodeToString(accessTokenKey.getBytes());
     }
 
+    public Token createToken(Long id) {
+        String accessToken = createToken(id, accessTokenValidTime, accessTokenKey);
+        String refreshToken = createToken(id, refreshTokenValidTime, refreshTokenKey);
+        return Token.builder().accessToken(accessToken).refreshToken(refreshToken).build();
+    }
+
     public String createAccessToken(UserDto.Info userDto) {
         return createToken(userDto, accessTokenValidTime, accessTokenKey);
     }
@@ -85,6 +92,17 @@ public class JwtTokenProvider {
                 .compact();
     }
 
+    private String createToken(Long userId, long tokenValidTime, String signKey) {
+        Claims claims = Jwts.claims().setSubject(userId.toString());
+        Instant now = Instant.now();
+        return Jwts.builder()
+                .setClaims(claims)
+                .setIssuedAt(Date.from(now))
+                .setExpiration(new Date((now.toEpochMilli() + tokenValidTime)))
+                .signWith(SignatureAlgorithm.HS256, signKey)
+                .compact();
+    }
+    
     public Authentication getAuthentication(String token) {
         UserDetails userDetails = this.userDetailsService.loadUserByUsername(this.getAccessTokenUserId(token));
         return new UsernamePasswordAuthenticationToken(this.modelMapper.map(userDetails, UserDto.class), "", userDetails.getAuthorities());

@@ -2,10 +2,7 @@ package com.zoooohs.instagramclone.domain.auth.service;
 
 import com.zoooohs.instagramclone.configuration.JwtTokenProvider;
 import com.zoooohs.instagramclone.domain.auth.dto.AuthDto;
-import com.zoooohs.instagramclone.domain.auth.entity.RefreshTokenEntity;
-import com.zoooohs.instagramclone.domain.auth.repository.RefreshTokenRepository;
 import com.zoooohs.instagramclone.domain.common.type.AccountStatusType;
-import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
 import com.zoooohs.instagramclone.exception.ErrorCode;
@@ -23,7 +20,6 @@ import java.util.Optional;
 @Service
 public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
-    private final RefreshTokenRepository refreshTokenRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
@@ -37,7 +33,7 @@ public class AuthServiceImpl implements AuthService {
         }
         UserEntity user = this.modelMapper.map(signUp, UserEntity.class);
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        this.userRepository.save(user).getId();
+        this.userRepository.save(user);
         // TODO: verification code 만드는 방법 다시 조사하기
         return passwordEncoder.encode(user.getEmail()+user.getName());
     }
@@ -51,23 +47,16 @@ public class AuthServiceImpl implements AuthService {
         if (user.getStatus().equals(AccountStatusType.WAITING)) {
             throw new ZooooException(ErrorCode.USER_NOT_VERIFIED);
         }
-        return generateNewToken(this.modelMapper.map(user, UserDto.Info.class));
+        return generateNewToken(user.getId());
     }
 
     @Override
     @Transactional
     public AuthDto.Token refresh(AuthDto.Token token) {
         if (!this.jwtTokenProvider.validRefreshToken(token.getRefreshToken())) {
-            this.refreshTokenRepository.deleteByToken(token.getRefreshToken());
             throw new ZooooException(ErrorCode.TOKEN_EXPIRED);
         }
-        RefreshTokenEntity refreshTokenEntity = this.refreshTokenRepository.findByToken(token.getRefreshToken());
-        if (refreshTokenEntity == null) {
-            throw new ZooooException(ErrorCode.TOKEN_EXPIRED);
-        }
-        String userName = this.jwtTokenProvider.getRefreshTokenUserId(token.getRefreshToken());
-        UserEntity user = this.userRepository.findByEmail(userName).orElseThrow(() -> new ZooooException(ErrorCode.TOKEN_EXPIRED));
-        return generateNewToken(this.modelMapper.map(user, UserDto.Info.class));
+        return generateNewToken(Long.parseLong(jwtTokenProvider.getRefreshTokenUserId(token.getRefreshToken())));
     }
 
     @Transactional(readOnly = true)
@@ -97,22 +86,7 @@ public class AuthServiceImpl implements AuthService {
         return true;
     }
 
-
-    @Transactional
-    private AuthDto.Token generateNewToken(UserDto.Info userDto) {
-        AuthDto.Token token =  AuthDto.Token.builder()
-                .accessToken(this.jwtTokenProvider.createAccessToken(userDto))
-                .refreshToken(this.jwtTokenProvider.createRefreshToken(userDto.getEmail()))
-                .build();
-        // TODO: store refresh token in memory db
-        RefreshTokenEntity refreshTokenEntity = this.refreshTokenRepository.findByUserName(userDto.getEmail());
-        if (refreshTokenEntity == null) {
-            refreshTokenEntity = new RefreshTokenEntity();
-            refreshTokenEntity.setUserName(userDto.getEmail());
-        }
-        refreshTokenEntity.setToken(token.getRefreshToken());
-        this.refreshTokenRepository.save(refreshTokenEntity);
-        return token;
+    private AuthDto.Token generateNewToken(Long userId) {
+        return jwtTokenProvider.createToken(userId);
     }
-
 }
