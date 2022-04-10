@@ -117,8 +117,8 @@ public class AuthServiceTest {
 
         AuthDto.Token actual = this.authService.signIn(signInDto);
 
-        assertEquals(testUser.getId(), Long.parseLong(jwtTokenProvider.getAccessTokenUserId(actual.getAccessToken())));
-        assertEquals(testUser.getId(), Long.parseLong(jwtTokenProvider.getAccessTokenUserId(actual.getAccessToken())));
+        assertEquals(testUser.getId(), jwtTokenProvider.getAccessTokenValue(actual.getAccessToken(), "id", Long.class));
+        assertEquals(testUser.getId(), jwtTokenProvider.getRefreshTokenValue(actual.getRefreshToken(), "id", Long.class));
     }
 
     @DisplayName("인증 받지 않은 계정 DTO -> USER_NOT_VERIFIED throw")
@@ -159,7 +159,7 @@ public class AuthServiceTest {
     @DisplayName("refreshToken 으로 accessToken, refreshToken 갱신")
     @Test
     public void refreshTest() {
-        AuthDto.Token token = jwtTokenProvider.createToken(testUser.getId());
+        AuthDto.Token token = jwtTokenProvider.createToken(testUser.getId(), testUser.getUsername());
 
         AuthDto.Token actual = this.authService.refresh(token);
 
@@ -169,7 +169,7 @@ public class AuthServiceTest {
 
     @Test
     public void refreshTokenDateExpiredFailureTest() {
-        AuthDto.Token token = jwtTokenProvider.createToken(testUser.getId());
+        AuthDto.Token token = jwtTokenProvider.createToken(testUser.getId(), testUser.getUsername());
 
         Instant now = Instant.ofEpochMilli(Instant.now().toEpochMilli() + 120L *24*60*60*1000);
 

@@ -47,9 +47,9 @@ public class JwtTokenProvider {
         accessTokenKey = Base64.getEncoder().encodeToString(accessTokenKey.getBytes());
     }
 
-    public Token createToken(Long id) {
-        String accessToken = createToken(id, accessTokenValidTime, accessTokenKey);
-        String refreshToken = createToken(id, refreshTokenValidTime, refreshTokenKey);
+    public Token createToken(Long id, String username) {
+        String accessToken = createToken(id, username, accessTokenValidTime, accessTokenKey);
+        String refreshToken = createToken(id, username, refreshTokenValidTime, refreshTokenKey);
         return Token.builder().accessToken(accessToken).refreshToken(refreshToken).build();
     }
 
@@ -92,8 +92,9 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    private String createToken(Long userId, long tokenValidTime, String signKey) {
-        Claims claims = Jwts.claims().setSubject(userId.toString());
+    private String createToken(Long id, String username, long tokenValidTime, String signKey) {
+        Claims claims = Jwts.claims().setSubject(username);
+        claims.put("id", id);
         Instant now = Instant.now();
         return Jwts.builder()
                 .setClaims(claims)
@@ -145,12 +146,20 @@ public class JwtTokenProvider {
         }
     }
 
-    public <T> T getValue(String token, String key, Class<T> classType) {
-        if (classType == String.class) {
-            return Jwts.parser().setSigningKey(accessTokenKey).parseClaimsJws(token).getBody().get(key, classType);
+    public <T> T getAccessTokenValue(String token, String key, Class<T> classType) {
+        return getValue(token, key, classType, accessTokenKey);
+    }
+    public <T> T getRefreshTokenValue(String token, String key, Class<T> classType) {
+        return getValue(token, key, classType, refreshTokenKey);
+    }
+
+    private <T> T getValue(String token, String key, Class<T> classType, String signKey) {
+        if (classType == String.class || classType == Long.class) {
+            return Jwts.parser().setSigningKey(signKey).parseClaimsJws(token).getBody().get(key, classType);
         }
         return objectMapper.convertValue(
-                Jwts.parser().setSigningKey(accessTokenKey).parseClaimsJws(token).getBody().get(key, LinkedHashMap.class),
+                Jwts.parser().setSigningKey(signKey).parseClaimsJws(token).getBody().get(key, LinkedHashMap.class),
                 classType);
     }
+
 }

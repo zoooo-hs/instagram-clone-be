@@ -35,7 +35,7 @@ public class JwtProviderTest {
         String userId = "test@test.com";
         String actual = jwtTokenProvider.createAccessToken(userId);
 
-        Assertions.assertEquals(userId, jwtTokenProvider.getValue(actual, "sub", String.class));
+        Assertions.assertEquals(userId, jwtTokenProvider.getAccessTokenValue(actual, "sub", String.class));
     }
 
     @DisplayName("Token안에 email, name, id, photo path까지 가져오기")
@@ -45,8 +45,8 @@ public class JwtProviderTest {
 
         String actual = jwtTokenProvider.createAccessToken(userDto);
 
-        Assertions.assertEquals(userDto.getName(), jwtTokenProvider.getValue(actual, "name", String.class));
-        Assertions.assertEquals(userDto.getEmail(), jwtTokenProvider.getValue(actual, "email", String.class));
-        Assertions.assertEquals(userDto.getPhoto(), jwtTokenProvider.getValue(actual, "photo", PhotoDto.Photo.class));
+        Assertions.assertEquals(userDto.getName(), jwtTokenProvider.getAccessTokenValue(actual, "name", String.class));
+        Assertions.assertEquals(userDto.getEmail(), jwtTokenProvider.getAccessTokenValue(actual, "email", String.class));
+        Assertions.assertEquals(userDto.getPhoto(), jwtTokenProvider.getAccessTokenValue(actual, "photo", PhotoDto.Photo.class));
     }
 }

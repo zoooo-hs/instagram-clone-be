@@ -47,7 +47,7 @@ public class AuthServiceImpl implements AuthService {
         if (user.getStatus().equals(AccountStatusType.WAITING)) {
             throw new ZooooException(ErrorCode.USER_NOT_VERIFIED);
         }
-        return generateNewToken(user.getId());
+        return generateNewToken(user.getId(), user.getUsername());
     }
 
     @Override
@@ -56,7 +56,9 @@ public class AuthServiceImpl implements AuthService {
         if (!this.jwtTokenProvider.validRefreshToken(token.getRefreshToken())) {
             throw new ZooooException(ErrorCode.TOKEN_EXPIRED);
         }
-        return generateNewToken(Long.parseLong(jwtTokenProvider.getRefreshTokenUserId(token.getRefreshToken())));
+        String username = jwtTokenProvider.getRefreshTokenUserId(token.getRefreshToken());
+        Long userId = jwtTokenProvider.getRefreshTokenValue(token.getRefreshToken(), "id", Long.class);
+        return generateNewToken(userId, username);
     }
 
     @Transactional(readOnly = true)
@@ -86,7 +88,7 @@ public class AuthServiceImpl implements AuthService {
         return true;
     }
 
-    private AuthDto.Token generateNewToken(Long userId) {
-        return jwtTokenProvider.createToken(userId);
+    private AuthDto.Token generateNewToken(Long userId, String username) {
+        return jwtTokenProvider.createToken(userId, username);
     }
 }
