@@ -31,7 +31,6 @@ import java.util.Set;
         }),
 })
 public class PostEntity extends BaseEntity {
-    // TODO: hash tag 알 수 있는 방법 추가하기
     @Column(name = "description")
     private String description;
 

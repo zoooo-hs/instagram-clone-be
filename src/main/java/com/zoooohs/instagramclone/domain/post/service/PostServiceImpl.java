@@ -72,7 +72,6 @@ public class PostServiceImpl implements PostService {
     @Transactional(readOnly = true)
     @Override
     public List<PostDto.Post> findByUserId(Long postUserId, PageModel pageModel, Long userId) {
-        // TODO: userDto 추가 -> 현재 유저가 볼 수 있는 게시글만 보게 -> 팔로우 기능 이후
         List<PostEntity> postEntities = this.postRepository.findByUserId(postUserId, PageRequest.of(pageModel.getIndex(), pageModel.getSize()));
         return makePostDto(postEntities, userId);
     }
@@ -108,12 +107,9 @@ public class PostServiceImpl implements PostService {
     public List<PostDto.Post> getFeeds(Long userId, SearchModel searchModel) {
         List<PostEntity> postEntities = null;
         if (searchModel.getKeyword() == null) {
-            // 일단 팔로워 붙기 전까진 전체 게시글 보기
-            // TODO: findAllWithPage UnitTest
-            postEntities = postRepository.findAllWithPage(PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
-//            List<Long> userIds = followRepository.findByUserId(userId).stream().map(entity -> entity.getFollowUser().getId()).collect(Collectors.toList());
-//            userIds.add(userId);
-//            postEntities = postRepository.findAllByUserId(userIds, PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
+           List<Long> userIds = followRepository.findByUserId(userId).stream().map(entity -> entity.getFollowUser().getId()).collect(Collectors.toList());
+           userIds.add(userId);
+           postEntities = postRepository.findAllByUserId(userIds, PageRequest.of(searchModel.getIndex(), searchModel.getSize()));
         } else {
             if (searchModel.getSearchKey().equals(SearchKeyType.HASH_TAG)) {
                 postEntities = postRepository.findAllByTag(searchModel.getKeyword(), PageRequest.of(searchModel.getIndex(), searchModel.getSize()));

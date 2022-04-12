@@ -128,10 +128,9 @@ public class PostServiceTest {
         searchModel.setSize(20);
 
 
-        // TODO: 일단 테스트를 위해 전체 리스트 조회
-//        given(followRepository.findByUserId(eq(user.getId()))).willReturn(followEntities);
-//        given(this.postRepository.findAllByUserId(anyList(), eq(PageRequest.of(0, 20)))).willReturn(posts.subList(0, 20));
-        given(this.postRepository.findAllWithPage(eq(PageRequest.of(0, 20)))).willReturn(posts.subList(0, 20));
+        given(followRepository.findByUserId(eq(user.getId()))).willReturn(followEntities);
+        given(this.postRepository.findAllByUserId(anyList(), eq(PageRequest.of(0, 20))))
+                .willReturn(posts.subList(0, 20));
 
         List<PostDto.Post> actual = postService.getFeeds(user.getId(), searchModel);
 
