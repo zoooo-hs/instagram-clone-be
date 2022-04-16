@@ -66,7 +66,6 @@ public class UserController {
         return userService.getUsers(searchModel);
     }
 
-    // TODO: user Id를 받아서 작동하도록 변경해야함
     @Operation(summary = "사용자 바이오 수정", description = "자신의 바이오 정보를 변경한다.")
     @ApiResponses(value = {
             @ApiResponse(
