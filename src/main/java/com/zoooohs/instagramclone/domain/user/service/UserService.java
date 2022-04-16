@@ -15,5 +15,5 @@ public interface UserService {
 
     UserDto.Info updatePassword(Long userId, UserDto.UpdatePassword passwordDto, UserDto authUserDto);
 
-    Info findByName(String name);
+    Info findByName(String name, UserDto userDto);
 }

@@ -1,8 +1,14 @@
 package com.zoooohs.instagramclone.domain.follow.service;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.zoooohs.instagramclone.domain.follow.dto.FollowDto;
 import com.zoooohs.instagramclone.domain.follow.entity.FollowEntity;
 import com.zoooohs.instagramclone.domain.follow.repository.FollowRepository;
+import com.zoooohs.instagramclone.domain.photo.dto.PhotoDto;
+import com.zoooohs.instagramclone.domain.user.dto.UserDto;
+import com.zoooohs.instagramclone.domain.user.dto.UserDto.Info;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
 import com.zoooohs.instagramclone.domain.user.repository.UserRepository;
 import com.zoooohs.instagramclone.exception.ErrorCode;
@@ -53,5 +59,17 @@ public class FollowServiceImpl implements FollowService {
         Long followId = follow.getId();
         followRepository.delete(follow);
         return followId;
+    }
+
+    @Override
+    public List<UserDto.Info> findByUserId(Long userId, UserDto userDto) {
+        return followRepository.findByUserId(userId).stream().map(FollowEntity::getFollowUser)
+                .map(userEntity -> modelMapper.map(userEntity, UserDto.Info.class)).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Info> findByFollowUserId(Long userId, UserDto userDto) {
+        return followRepository.findByFollowUserId(userId).stream().map(FollowEntity::getUser)
+                .map(userEntity -> modelMapper.map(userEntity, UserDto.Info.class)).collect(Collectors.toList());
     }
 }

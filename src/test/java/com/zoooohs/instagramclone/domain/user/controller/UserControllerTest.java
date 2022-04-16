@@ -184,13 +184,15 @@ public class UserControllerTest {
     void findByNameTest() throws Exception {
         String url = "/name/test/user";
 
-        UserDto.Info user = UserDto.Info.builder().id(1L).name("test").build();
+        UserDto.Info user = UserDto.Info.builder().id(1L).name("test").followerCount(0L).following(true).followingCount(2L).build();
 
-        given(userService.findByName(eq("test"))).willReturn(user);
+        given(userService.findByName(eq("test"), any(UserDto.class))).willReturn(user);
 
         mockMvc.perform(MockMvcRequestBuilders.get(url))
             .andExpect(MockMvcResultMatchers.status().isOk())
             .andExpect(MockMvcResultMatchers.jsonPath("$.name", Matchers.is("test")))
-            ;
+            .andExpect(MockMvcResultMatchers.jsonPath("$.following", Matchers.is(true)))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.follower_count", Matchers.notNullValue()))
+            .andExpect(MockMvcResultMatchers.jsonPath("$.following_count", Matchers.notNullValue()));
     }
 }

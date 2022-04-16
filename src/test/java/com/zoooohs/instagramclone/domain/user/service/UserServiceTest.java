@@ -2,6 +2,8 @@ package com.zoooohs.instagramclone.domain.user.service;
 
 import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.common.type.SearchKeyType;
+import com.zoooohs.instagramclone.domain.follow.entity.FollowEntity;
+import com.zoooohs.instagramclone.domain.follow.repository.FollowRepository;
 import com.zoooohs.instagramclone.domain.photo.dto.PhotoDto;
 import com.zoooohs.instagramclone.domain.photo.entity.PhotoEntity;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
@@ -26,8 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.BDDMockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -35,6 +36,8 @@ public class UserServiceTest {
     UserService userService;
     @Mock
     UserRepository userRepository;
+    @Mock
+    FollowRepository followRepository;
     @Spy
     ModelMapper modelMapper;
 
@@ -43,7 +46,7 @@ public class UserServiceTest {
     @BeforeEach
     public void init() {
         passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-        userService = new UserServiceImpl(userRepository, passwordEncoder, modelMapper);
+        userService = new UserServiceImpl(userRepository, passwordEncoder, modelMapper, followRepository);
     }
 
     @Test
@@ -205,15 +208,29 @@ public class UserServiceTest {
     @DisplayName("user 이름으로 사용자 조회해서 info 반환")
     @Test
     void findByNameTest() {
-        given(userRepository.findByName(eq("test")))
-            .willReturn(Optional.of(UserEntity.builder().id(1L).name("test").build()));
+        UserDto userDto = UserDto.builder().name("test").email("test@test.test").id(1L).build();
+        UserEntity userEntity = UserEntity.builder().id(1L).name("test").build();
 
-        UserDto.Info actual = userService.findByName("test");
+        given(userRepository.findByName(eq("test")))
+            .willReturn(Optional.of(userEntity));
+
+        FollowEntity followEntity = FollowEntity.builder()
+                .user(UserEntity.builder().id(2L).name("test2").build())
+                .followUser(userEntity).build();
+
+        given(followRepository.findByUserId(eq(1L))).willReturn(List.of());
+        given(followRepository.findByFollowUserId(eq(1L))).willReturn(List.of(followEntity));
+
+        UserDto.Info actual = userService.findByName("test", userDto);
 
         assertEquals("test", actual.getName());
+        assertNotNull(actual.getFollowerCount());
+        assertNotNull(actual.getFollowingCount());
+        assertTrue(actual.isFollowing());
+
         
         try {
-            userService.findByName("test-2-not-found-name");
+            userService.findByName("test-2-not-found-name", userDto);
             fail();
         } catch (ZooooException e) {
             assertEquals(ErrorCode.USER_NOT_FOUND, e.getErrorCode());

@@ -2,6 +2,8 @@ package com.zoooohs.instagramclone.domain.user.service;
 
 import com.zoooohs.instagramclone.domain.common.model.SearchModel;
 import com.zoooohs.instagramclone.domain.common.type.SearchKeyType;
+import com.zoooohs.instagramclone.domain.follow.entity.FollowEntity;
+import com.zoooohs.instagramclone.domain.follow.repository.FollowRepository;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto;
 import com.zoooohs.instagramclone.domain.user.dto.UserDto.Info;
 import com.zoooohs.instagramclone.domain.user.entity.UserEntity;
@@ -29,10 +31,13 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
 
+    private final FollowRepository followRepository;
+
     @Transactional(readOnly = true)
     @Override
     public UserDto.Info getInfo(Long userId) {
         UserEntity user = this.userRepository.findById(userId).orElseThrow(() -> new ZooooException(ErrorCode.USER_NOT_FOUND));
+        // TODO: userDto 입력 받아서 generateUserInfo 사용하기
         return this.modelMapper.map(user, UserDto.Info.class);
     }
 
@@ -83,9 +88,24 @@ public class UserServiceImpl implements UserService {
     }
 
 	@Override
-	public Info findByName(String name) {
-        return userRepository.findByName(name)
-            .map(entity -> modelMapper.map(entity, UserDto.Info.class))
+	public Info findByName(String name, UserDto userDto) {
+        UserEntity userEntity = userRepository.findByName(name)
             .orElseThrow(() -> new ZooooException(ErrorCode.USER_NOT_FOUND));
-	}
+        return generateUserInfo(userDto, userEntity);
+    }
+
+    private Info generateUserInfo(UserDto userDto, UserEntity userEntity) {
+        // TODO: 최적화? 가독성? 어떤게 중요할까?
+        // userid, followid 둘 중 하나라도 매칭하는거 찾아서 filter로 걸러내는 방법도 있음
+        List<FollowEntity> followings = followRepository.findByUserId(userEntity.getId());
+        List<FollowEntity> followers = followRepository.findByFollowUserId(userEntity.getId());
+        boolean following = userEntity.getId().equals(userDto.getId()) ||
+                followers.stream().anyMatch(f -> f.getUser().getName().equals(userDto.getName()));
+
+        Info info = modelMapper.map(userEntity, Info.class);
+        info.setFollowing(following);
+        info.setFollowerCount((long) followers.size());
+        info.setFollowingCount((long) followings.size());
+        return info;
+    }
 }

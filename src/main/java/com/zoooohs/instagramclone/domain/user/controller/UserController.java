@@ -50,8 +50,8 @@ public class UserController {
             ),
     })
     @GetMapping("/name/{name}/user")
-    public UserDto.Info findByName(@PathVariable String name) {
-        return this.userService.findByName(name);
+    public UserDto.Info findByName(@PathVariable String name, @AuthenticationPrincipal UserDto userDto) {
+        return this.userService.findByName(name, userDto);
     }
 
     @Operation(summary = "사용자 리스트 조회", description = "사용자 리스트를 조회하거나, 이름으로 사용자 리스트 검색")
